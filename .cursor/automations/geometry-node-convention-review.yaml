@@ -1,0 +1,27 @@
+name: Geometry node convention review
+description: Review geometry-node PR diffs against .cursor/rules and .clang-tidy
+
+triggers:
+  - type: pull_request_opened
+    repository: gsmith432/DEMO-blender
+    base_branch: main
+  - type: pull_request_pushed
+    repository: gsmith432/DEMO-blender
+    base_branch: main
+
+tools:
+  - comment_on_pull_request
+
+instructions: |
+  Review the pull request diff against `.cursor/rules/geometry-nodes.mdc` and `.clang-tidy`.
+
+  Flag and comment inline on specific lines when you find:
+  - Missing SPDX headers
+  - Namespace naming that does not match the file (`node_geo_foo.cc` must use `node_geo_foo_cc`)
+  - Raw `const char *` where `_ustr` is the convention (geometry socket declarations and GeoNodeExecParams I/O)
+  - A node added without its CMakeLists.txt SRC entry and required type-ID / enum entries
+  - Heap allocations inside per-element loops
+  - Non-const references where a const reference would suffice
+
+  Use the Comment on pull request tool for inline review comments on the exact diff lines.
+  If the diff is clean, post a single top-level comment: "Geometry node conventions: no issues found." and stop.

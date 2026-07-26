@@ -1,0 +1,55 @@
+---
+description: Geometry node coding conventions for DEMO-blender PR review
+globs:
+  - source/blender/nodes/geometry/**
+---
+
+# Geometry Nodes — Coding Conventions
+
+Review all geometry-node diffs against these rules and `.clang-tidy`.
+
+## SPDX headers
+
+Every new or modified `.cc`/`.hh` file must start with:
+
+```
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+```
+
+## File and namespace naming
+
+- New nodes: `source/blender/nodes/geometry/nodes/node_geo_<snake_case>.cc`
+- Namespace must match the file: `node_geo_foo.cc` → `namespace blender::nodes::node_geo_foo_cc`
+- Prefer the fully-qualified form over nested `namespace blender { namespace nodes::... }`
+- Primary include: `"node_geometry_util.hh"`
+
+## Build registration
+
+- Add the `.cc` to `source/blender/nodes/geometry/CMakeLists.txt` `SRC` list (alphabetically)
+- End the file with `static void node_register() { ... }` and `NOD_REGISTER_NODE(node_register)`
+- Do not manually edit `node_register.cc` or `register_geometry_nodes.cc` (auto-generated)
+
+## Node identity and type IDs
+
+- RNA idname: `"GeometryNode<PascalCase>"_ustr`
+- New nodes: omit legacy type in `geo_node_type_base()` — do not add `GEO_NODE_*` to `BKE_node_legacy_types.hh` unless required for versioning or `switch (node->type_legacy)` cases
+- If a node is added, verify CMakeLists and any required type-ID / enum entries are updated together
+
+## String conventions (`_ustr` vs `const char*`)
+
+- Geometry node API (`node_declare`, `GeoNodeExecParams`): use `"Socket Name"_ustr` literals
+- Compositor `NodeOperation` (`get_input`, `get_result`): plain `const char*` string literals
+- User-visible strings: `N_()`, `TIP_()`, `IFACE_()` — never hardcode English without a translation macro
+
+## Performance and style
+
+- Flag heap allocations (`new`, `MEM_new`, `std::make_unique`, container growth) inside per-element loops (e.g. over points, faces, curves)
+- Prefer `const T &` over `T &` when the parameter is not modified
+- Follow `.clang-tidy` readability and bugprone checks where applicable
+
+## Review output
+
+- Comment inline on the specific offending line
+- If the diff is clean, post one line: "Geometry node conventions: no issues found."
