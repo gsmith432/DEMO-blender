@@ -52,7 +52,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Selection"_ustr)
       .default_value(true)
       .evaluated_geometry_field()
-      .hide_value();
+      .hide_value()
+      .description("Splines to resample");
   b.add_input<decl::Menu>("Mode"_ustr)
       .static_items(mode_items)
       .optional_label()
@@ -62,13 +63,15 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(1)
       .max(100000)
       .evaluated_geometry_field()
-      .usage_by_single_menu(GEO_NODE_CURVE_RESAMPLE_COUNT);
+      .usage_by_single_menu(GEO_NODE_CURVE_RESAMPLE_COUNT)
+      .description("Number of points in each resampled spline");
   b.add_input<decl::Float>("Length"_ustr)
       .default_value(0.1f)
       .min(0.01f)
       .subtype(PROP_DISTANCE)
       .evaluated_geometry_field()
-      .usage_by_single_menu(GEO_NODE_CURVE_RESAMPLE_LENGTH);
+      .usage_by_single_menu(GEO_NODE_CURVE_RESAMPLE_LENGTH)
+      .description("Length of segments used to calculate the number of samples");
 }
 
 static void node_layout_ex(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)

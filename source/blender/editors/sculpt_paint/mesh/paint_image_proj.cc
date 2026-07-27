@@ -1487,7 +1487,7 @@ static void insert_seam_vert_array(const ProjPaintState *ps,
   vseam[1].angle += vseam[1].angle > 0.0f ? -M_PI : M_PI;
   vseam[1].normal_cw = !vseam[1].normal_cw;
   if (ps->poly_to_loop_uv_single) {
-    copy_v2_v2(vseam->uv, ps->poly_to_loop_uv_single.value());
+    copy_v2_v2(vseam[1].uv, ps->poly_to_loop_uv_single.value());
   }
   else {
     copy_v2_v2(vseam[1].uv, tri_uv[fidx[1]]);
@@ -4128,11 +4128,9 @@ static void project_paint_bleed_add_face_user(const ProjPaintState *ps,
     /* Check for degenerate triangles. Degenerate faces cause trouble with bleed computations.
      * Ideally this would be checked later, not to add to the cost of computing non-degenerate
      * triangles, but that would allow other triangles to still find adjacent seams on degenerate
-     * triangles, potentially causing incorrect results. */
-    const float area_tri = 0.0f;
-    if (!ps->poly_to_loop_uv_single) {
-      area_tri_v2(UNPACK3(tri_uv));
-    }
+     * triangles, potentially causing incorrect results.
+     * Single-value UV maps collapse to a point in UV space, so treat them as degenerate. */
+    const float area_tri = ps->poly_to_loop_uv_single ? 0.0f : area_tri_v2(UNPACK3(tri_uv));
     if (area_tri > 0.0f) {
       const int vert_tri[3] = {PS_CORNER_TRI_AS_VERT_INDEX_3(ps, corner_tri)};
       void *tri_index_p = POINTER_FROM_INT(tri_index);
