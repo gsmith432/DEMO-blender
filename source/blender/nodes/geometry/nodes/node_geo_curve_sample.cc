@@ -33,7 +33,8 @@ static void node_declare(NodeDeclarationBuilder &b)
     const NodeGeometryCurveSample &storage = node_storage(*node);
     b.add_input(eCustomDataType(storage.data_type), "Value"_ustr)
         .hide_value()
-        .evaluated_geometry_field();
+        .evaluated_geometry_field()
+        .description("Values to sample at each evaluated point on the curve");
   }
 
   auto &factor = b.add_input<decl::Float>("Factor"_ustr)
@@ -41,6 +42,7 @@ static void node_declare(NodeDeclarationBuilder &b)
                      .max(1.0f)
                      .subtype(PROP_FACTOR)
                      .structure_type(StructureType::Dynamic)
+                     .description("Position along the spline as a factor of its total length")
                      .make_available([](bNode &node) {
                        node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
                      });
@@ -48,11 +50,13 @@ static void node_declare(NodeDeclarationBuilder &b)
                      .min(0.0f)
                      .subtype(PROP_DISTANCE)
                      .structure_type(StructureType::Dynamic)
+                     .description("Position along the spline as a distance from its start")
                      .make_available([](bNode &node) {
                        node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH;
                      });
   auto &index = b.add_input<decl::Int>("Curve Index"_ustr)
                     .structure_type(StructureType::Dynamic)
+                    .description("Index of the curve to sample on")
                     .make_available(
                         [](bNode &node) { node_storage(node).use_all_curves = false; });
 

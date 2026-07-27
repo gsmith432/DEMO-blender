@@ -33,11 +33,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Selection"_ustr)
       .default_value(true)
       .hide_value()
-      .evaluated_geometry_field();
+      .evaluated_geometry_field()
+      .description("Splines to trim");
   auto &start_fac = b.add_input<decl::Float>("Start"_ustr)
                         .min(0.0f)
                         .max(1.0f)
                         .subtype(PROP_FACTOR)
+                        .description("Where to start the trimmed spline, as a factor of its length")
                         .make_available([](bNode &node) {
                           node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
                         })
@@ -47,6 +49,7 @@ static void node_declare(NodeDeclarationBuilder &b)
                       .max(1.0f)
                       .default_value(1.0f)
                       .subtype(PROP_FACTOR)
+                      .description("Where to end the trimmed spline, as a factor of its length")
                       .make_available([](bNode &node) {
                         node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
                       })
@@ -54,6 +57,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   auto &start_len = b.add_input<decl::Float>("Start"_ustr, "Start_001"_ustr)
                         .min(0.0f)
                         .subtype(PROP_DISTANCE)
+                        .description(
+                            "Where to start the trimmed spline, as a distance from its start")
                         .make_available([](bNode &node) {
                           node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH;
                         })
@@ -62,6 +67,8 @@ static void node_declare(NodeDeclarationBuilder &b)
                       .min(0.0f)
                       .default_value(1.0f)
                       .subtype(PROP_DISTANCE)
+                      .description(
+                          "Where to end the trimmed spline, as a distance from its start")
                       .make_available([](bNode &node) {
                         node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH;
                       })

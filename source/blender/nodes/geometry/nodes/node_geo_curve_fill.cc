@@ -58,7 +58,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Menu>("Mode"_ustr)
       .static_items(mode_items)
       .default_value(GEO_NODE_CURVE_FILL_MODE_TRIANGULATED)
-      .optional_label();
+      .optional_label()
+      .description("How to generate mesh faces inside the curves");
   b.add_input<decl::Menu>("Fill Rule"_ustr)
       .static_items(fill_rule_items)
       .default_value(GEO_NODE_CURVE_FILL_RULE_EVEN_ODD)
