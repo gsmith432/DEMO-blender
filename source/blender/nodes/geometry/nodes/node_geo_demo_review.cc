@@ -27,6 +27,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (Mesh *mesh = geometry.get_mesh_for_write()) {
       Vector<float> &positions = mesh->vert_positions_for_write();
       process_vertices(*mesh, positions);
+      mesh->tag_positions_changed();
     }
   });
   params.set_output("Geometry", std::move(geometry));
