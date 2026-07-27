@@ -36,6 +36,7 @@ static void node_declare(NodeDeclarationBuilder &b)
                     .min(2)
                     .max(100000)
                     .evaluated_geometry_field()
+                    .description("Number of points to generate on each spline")
                     .make_available([](bNode &node) {
                       node_storage(node).mode = GEO_NODE_CURVE_RESAMPLE_COUNT;
                     });
@@ -44,6 +45,7 @@ static void node_declare(NodeDeclarationBuilder &b)
                      .min(0.001f)
                      .subtype(PROP_DISTANCE)
                      .evaluated_geometry_field()
+                     .description("Length of segments used to calculate the number of points")
                      .make_available([](bNode &node) {
                        node_storage(node).mode = GEO_NODE_CURVE_RESAMPLE_LENGTH;
                      });

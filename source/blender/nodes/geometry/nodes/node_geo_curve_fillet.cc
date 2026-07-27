@@ -42,7 +42,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(FLT_MAX)
       .subtype(PropertySubType::PROP_DISTANCE)
       .default_value(0.25f)
-      .evaluated_geometry_field();
+      .evaluated_geometry_field()
+      .description("Radius of the rounded corner at each control point");
   b.add_input<decl::Bool>("Limit Radius"_ustr)
       .description("Limit the maximum value of the radius in order to avoid overlapping fillets");
   b.add_input<decl::Menu>("Mode"_ustr)
@@ -54,7 +55,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(1)
       .max(1000)
       .evaluated_geometry_field()
-      .usage_by_single_menu(GEO_NODE_CURVE_FILLET_POLY);
+      .usage_by_single_menu(GEO_NODE_CURVE_FILLET_POLY)
+      .description("Number of points added on each rounded corner");
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

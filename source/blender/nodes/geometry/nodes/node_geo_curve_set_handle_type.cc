@@ -29,7 +29,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Selection"_ustr)
       .default_value(true)
       .hide_value()
-      .evaluated_geometry_field();
+      .evaluated_geometry_field()
+      .description("Splines to set the handle type on");
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
