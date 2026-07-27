@@ -10890,6 +10890,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeListGetItem");
   define("GeometryNode", "GeometryNodeListLength");
   define("GeometryNode", "GeometryNodeMaterialSelection");
+  define("GeometryNode", "GeometryNodeMeanSplineLength");
   define("GeometryNode", "GeometryNodeMenuSwitch", def_geo_menu_switch);
   define("GeometryNode", "GeometryNodeMergeByDistance");
   define("GeometryNode", "GeometryNodeMergeLayers", def_geo_merge_layers);

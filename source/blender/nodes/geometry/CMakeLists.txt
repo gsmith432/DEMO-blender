@@ -189,6 +189,7 @@ set(SRC
   nodes/node_geo_list_length.cc
   nodes/node_geo_material_replace.cc
   nodes/node_geo_material_selection.cc
+  nodes/node_geo_mean_spline_length.cc
   nodes/node_geo_menu_switch.cc
   nodes/node_geo_merge_by_distance.cc
   nodes/node_geo_merge_layers.cc
