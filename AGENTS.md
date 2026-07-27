@@ -64,6 +64,12 @@ it, configure fails with `cannot find -lstdc++`.
 fetches the pinned `lib/linux_x64` submodule (~2.3 GB via Git LFS) from
 projects.blender.org. It is idempotent and a fast no-op when already current.
 
+### Expected `git status` noise (Git LFS)
+After Git LFS is initialized, `git status` reports thousands of tracked binary
+assets (under `assets/`, `release/`, `doc/`, etc.) as "modified" due to LFS
+smudge/pointer differences. This is pre-existing and unrelated to your work — do
+**not** `git add -A` / commit these. Stage only the specific files you changed.
+
 ### Demo node
 `source/blender/nodes/geometry/nodes/node_geo_demo_review.cc` contains intentional
 convention violations for the geometry-node review automation and is deliberately
