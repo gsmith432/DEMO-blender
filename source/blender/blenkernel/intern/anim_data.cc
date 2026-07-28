@@ -965,7 +965,13 @@ static bool driver_target_path_fix(ID &owner_id,
       }
     }
 
-    if (GS(owner_id.name) == ID_OB && target->pchan_name[0] && prefix.find("bones")) {
+    /* Only update `pchan_name` when renaming bones (e.g. "bones", "pose.bones", "edit_bones").
+     * `StringRef::find` returns `not_found` (-1) when absent; that value is truthy in boolean
+     * context, so it must be compared explicitly. Otherwise renames of constraints/modifiers
+     * (and similar) would corrupt transform-channel driver bone targets with matching names. */
+    if (GS(owner_id.name) == ID_OB && target->pchan_name[0] &&
+        prefix.find("bones") != StringRefBase::not_found)
+    {
       /* If the target is a bone we can assume that the infix will be surrounded with square
        * brackets and escaped. */
       BLI_assert(old_infix.size() >= 4);
