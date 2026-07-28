@@ -83,7 +83,9 @@ static Vector<std::pair<float, eRotationModes>> get_rotation_mode_ranges(const F
     const BezTriple &key = fcurve.bezt[i];
     const eRotationModes key_rotation_mode = eRotationModes(key.vec[1][1]);
     if (changes.is_empty()) {
-      changes.append({0, key_rotation_mode});
+      /* Start at -FLT_MAX so rotation keys on negative frames (pre-roll) are included.
+       * Using 0 silently dropped all keys before the scene origin. */
+      changes.append({-FLT_MAX, key_rotation_mode});
       continue;
     }
     if (changes.last().second == key_rotation_mode) {
@@ -414,8 +416,9 @@ bool convert_rotation_keys(const ed::AnimTransformable &transformable,
     else {
       /* Defaulting back to the struct value means that this can have unexpected results when
        * dealing with action layers. The rotation mode can still be animated by a higher layer but
-       * that means we cannot know the correct rotation mode for the current layer. */
-      rotation_mode_ranges = {{0, transformable.get_rotation_mode()}};
+       * that means we cannot know the correct rotation mode for the current layer.
+       * Start at -FLT_MAX so keys on negative frames are not discarded. */
+      rotation_mode_ranges = {{-FLT_MAX, transformable.get_rotation_mode()}};
     }
 
     modified_keys |= convert_rotation_mode_channelbag(

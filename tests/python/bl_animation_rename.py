@@ -158,6 +158,40 @@ class PoseBoneRenameTest(unittest.TestCase):
         for fcurve in dupli_action.layers[0].strips[0].channelbags[0].fcurves:
             self.assertEqual(fcurve.data_path, f'pose.bones[\"{_BONE_NAME_A}"].location')
 
+    def test_constraint_rename_does_not_retarget_driver_bone(self) -> None:
+        """Renaming a constraint must not rewrite transform-channel driver bone targets.
+
+        Regression for a bug where ``StringRef::find("bones")`` was used as a boolean:
+        ``not_found`` (-1) is truthy, so non-bone renames entered the pose-bone branch.
+        """
+        bone_name = _BONE_NAME_A
+        # Driver on a plain object property, targeting a pose bone via TRANSFORMS.
+        fcu = self.armature_obj.driver_add("location", 0)
+        driver_var = fcu.driver.variables.new()
+        driver_var.type = 'TRANSFORMS'
+        target = driver_var.targets[0]
+        target.id = self.armature_obj
+        target.bone_target = bone_name
+        target.transform_type = 'LOC_X'
+
+        # Constraints and bones are separate namespaces; share the bone's name.
+        constraint = self.armature_obj.constraints.new('COPY_LOCATION')
+        constraint.name = bone_name
+        self.assertEqual(constraint.name, bone_name)
+
+        constraint.name = "constraint_renamed"
+
+        self.assertEqual(
+            target.bone_target,
+            bone_name,
+            "Constraint rename must not change driver bone_target",
+        )
+
+        # Pose-bone rename should still update the driver bone target.
+        new_bone_name = "bone_a_renamed"
+        self.armature_obj.pose.bones[bone_name].name = new_bone_name
+        self.assertEqual(target.bone_target, new_bone_name)
+
 
 if __name__ == "__main__":
     import sys

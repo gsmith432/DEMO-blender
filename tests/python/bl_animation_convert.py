@@ -349,6 +349,35 @@ class ConvertRotationModeBones(ConvertRotationModeBase):
                 self.assertAlmostEqual(fcurve.keyframe_points[i].co[0], frame, 2)
 
 
+class ConvertRotationModeNegativeFrames(ConvertRotationModeBase):
+    """Rotation conversion must preserve keys on negative frames (pre-roll)."""
+
+    def setUp(self) -> None:
+        bpy.ops.wm.read_homefile(use_factory_startup=True)
+        bpy.context.preferences.edit.use_negative_frames = True
+        bpy.ops.mesh.primitive_monkey_add()
+        self.obj = bpy.context.active_object
+        self.obj.rotation_mode = 'XYZ'
+        self.obj.rotation_euler = (0.5, 0.25, 0.125)
+        self.obj.keyframe_insert("rotation_euler", frame=-10)
+        self.obj.rotation_euler = (1.0, 0.5, 0.25)
+        self.obj.keyframe_insert("rotation_euler", frame=-5)
+        self.action = self.obj.animation_data.action
+        self.action_slot = self.obj.animation_data.action_slot
+
+    def test_convert_preserves_negative_frame_keys(self):
+        fcurves = list(_fcurves_with_rna_path(self.action, self.action_slot, "rotation_euler"))
+        self.assertEqual(len(fcurves), 3)
+        self.obj.convert_rotation_mode('QUATERNION')
+        self.assertEqual(self.obj.rotation_mode, 'QUATERNION')
+        quat_fcurves = list(
+            _fcurves_with_rna_path(self.action, self.action_slot, "rotation_quaternion"))
+        self.assertEqual(len(quat_fcurves), 4)
+        for fcurve in quat_fcurves:
+            frames = [kp.co[0] for kp in fcurve.keyframe_points]
+            self.assertEqual(frames, [-10.0, -5.0])
+
+
 def main():
     global args
     import argparse
