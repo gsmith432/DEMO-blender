@@ -153,7 +153,16 @@ void BKE_action_fix_paths_rename(ID *owner_id,
                                  StringRefNull newName,
                                  bool verify_paths);
 
-using DriverMap = Map<ID *, Vector<DriverTarget *>>;
+/**
+ * A driver target together with the ID that owns the AnimData containing it.
+ * The owner must be tagged for CoW sync when the target is rewritten during path rename.
+ */
+struct DriverTargetRef {
+  ID *owner_id = nullptr;
+  DriverTarget *target = nullptr;
+};
+
+using DriverMap = Map<ID *, Vector<DriverTargetRef>>;
 /**
  * Build a map from an ID to all the `DriverTarget`s where it is being used.
  */
