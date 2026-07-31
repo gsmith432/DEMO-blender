@@ -130,34 +130,43 @@ def add_table(slide, headers, rows, left=Inches(0.5), top=Inches(1.65), width=In
     return table_shape
 
 
-def add_two_column_cards(slide, cards, top=Inches(1.7)):
-    col_w = Inches(5.95)
-    gap = Inches(0.4)
+def add_column_cards(slide, cards, top=Inches(1.7), columns=2):
+    gap = Inches(0.28)
+    total_gap = gap * (columns - 1)
+    col_w = (Inches(12.3) - total_gap) / columns
     for i, (title, bullets) in enumerate(cards):
-        left = Inches(0.6) + i * (col_w + gap)
-        shape = slide.shapes.add_shape(1, left, top, col_w, Inches(5.0))  # rectangle
+        left = Inches(0.55) + i * (col_w + gap)
+        shape = slide.shapes.add_shape(1, left, top, col_w, Inches(5.0))
         shape.fill.solid()
         shape.fill.fore_color.rgb = SURFACE
         shape.line.color.rgb = RGBColor(0x2A, 0x35, 0x48)
 
-        tbox = slide.shapes.add_textbox(left + Inches(0.2), top + Inches(0.15), col_w - Inches(0.4), Inches(0.5))
+        tbox = slide.shapes.add_textbox(left + Inches(0.15), top + Inches(0.12), col_w - Inches(0.3), Inches(0.45))
         p = tbox.text_frame.paragraphs[0]
         p.text = title
         p.font.bold = True
-        p.font.size = Pt(14)
+        p.font.size = Pt(13 if columns == 3 else 14)
         p.font.color.rgb = ACCENT2
         p.font.name = "Segoe UI"
 
-        bbox = slide.shapes.add_textbox(left + Inches(0.2), top + Inches(0.55), col_w - Inches(0.4), Inches(4.2))
+        bbox = slide.shapes.add_textbox(left + Inches(0.15), top + Inches(0.5), col_w - Inches(0.3), Inches(4.3))
         tf = bbox.text_frame
         tf.word_wrap = True
         for j, b in enumerate(bullets):
             p = tf.paragraphs[0] if j == 0 else tf.add_paragraph()
             p.text = b
-            p.font.size = Pt(12)
+            p.font.size = Pt(11 if columns == 3 else 12)
             p.font.color.rgb = MUTED
             p.font.name = "Segoe UI"
-            p.space_after = Pt(6)
+            p.space_after = Pt(5)
+
+
+def add_two_column_cards(slide, cards, top=Inches(1.7)):
+    add_column_cards(slide, cards, top=top, columns=2)
+
+
+def add_three_column_cards(slide, cards, top=Inches(1.7)):
+    add_column_cards(slide, cards, top=top, columns=3)
 
 
 def build():
@@ -179,7 +188,7 @@ def build():
     add_kicker(s, "AI Deployment Manager — Interview Exercise")
     add_title(s, "Executive Business Review", top=Inches(2.8), size=44)
     add_body(s, [
-        "Portfolio prioritization, champion strategy, and a live EBR role-play with Uber Engineering Leadership.",
+        "Portfolio prioritization, champion strategy, and a live EBR role-play with Databricks leadership.",
         "",
         "Gabriel Smith  ·  Confidential — fictional scenario data  ·  July 2026",
     ], top=Inches(4.2), size=18)
@@ -192,7 +201,7 @@ def build():
     add_bullets(s, [
         "Portfolio prioritization — top 5 accounts & 2 deprioritized",
         "Champion strategy — 5 individuals at Uber (prioritized account)",
-        "EBR role-play — Business review with Uber Engineering",
+        "EBR role-play — Business review with Databricks leadership",
         "Product roadmap — Cloud Agents, Automations, Bugbot + live demo",
         "Strategic initiatives — where to prioritize & 90-day next steps",
         "Asks for Cursor leadership",
@@ -320,43 +329,49 @@ def build():
     # 08 EBR intro
     s, num = slide()
     add_kicker(s, "EBR Role Play")
-    add_title(s, "Executive Business Review — Uber", size=32)
+    add_title(s, "Executive Business Review — Databricks", size=32)
     add_body(s, [
-        "Simulated QBR with James Okonkwo (VP Eng, Marketplace) + Priya Sharma (Dir, Developer Platform)",
-        "Account: $980K ARR · 15,423 SWEs · Green health · 7 mo to renewal",
-    ], top=Inches(1.55), size=17, color=TEXT)
+        "Strategic ecosystem partnership · $420K ARR · 5,480 SWEs · 80% active · 4 mo to renewal",
+    ], top=Inches(1.5), size=16, color=TEXT)
     add_two_column_cards(s, [
         ("Attendees — Cursor", [
             "ADM — Gabriel Smith (facilitator)",
             "Account Executive — partnership & commercial",
             "Solutions Engineer — technical deep-dives",
         ]),
-        ("Attendees — Uber", [
-            "James Okonkwo — VP Eng, Marketplace",
-            "Priya Sharma — Dir, Developer Platform",
-            "Elena Vasquez — Staff Eng, AI DevEx (optional)",
+        ("Attendees — Databricks", [
+            "Naveen Zutshi — Chief Information Officer",
+            "Bruce Wong — Head of Data Platform",
+            "Sam Shah — VP of Engineering",
         ]),
-    ], top=Inches(2.5))
+    ], top=Inches(2.15))
     add_slide_number(s, num)
 
     # 09 Usage
     s, num = slide()
     add_kicker(s, "EBR · Business Review")
-    add_title(s, "Usage & partnership to date", size=32)
-    add_two_column_cards(s, [
+    add_title(s, "Usage & partnership to date", size=30)
+    add_three_column_cards(s, [
         ("Adoption snapshot", [
-            "L30D active users: 8,385 (54% of SWEs)",
-            "Power users: 2,757 (17.9% of SWEs)",
-            "MoM active trend: +15%",
-            "Agent usage: 92% · Composer: 39.9%",
-            "Cloud Agent usage: 10.3%",
-            "Competitor trend: +7.2% MoM",
+            "L30D active users: 4,392 (80% of SWEs)",
+            "Power users: 530 (12% of active · 9.7% of SWEs)",
+            "Agent usage: 90% · Composer: 20%",
+            "Cloud Agent usage: 19.2%",
+            "~4,000 developers onboarded in first ~5 months",
         ]),
-        ("Partnership timeline", [
-            "Q-1: Enterprise onboarding — strong rollout across Mobility & Platform",
-            "Q0 (now): Engagement plateau; no dedicated rollout owner",
-            "AE pipeline: Two additional eng orgs; admin slow on intros",
-            "Renewal: 7 months — healthy sentiment; depth proof needed for expansion",
+        ("Partnership to date", [
+            "Strategic ecosystem partnership — leadership QBR this quarter",
+            "Fantastic initial rollout; partner team highly responsive",
+            "80% breadth adoption; opportunity to convert to depth",
+            "Competitor trend declining (−8.7% MoM) — momentum with Cursor",
+            "Renewal in 4 months — strong sentiment, expansion upside",
+        ]),
+        ("Usage trends", [
+            "MoM active users: +25.5%",
+            "MoM competitor users: −8.7%",
+            "Cloud adoption trending up from rollout baseline",
+            "Power-user depth lagging breadth — education opportunity",
+            "Agent / Cloud workflows driving fastest-growing cohort",
         ]),
     ])
     add_slide_number(s, num)
@@ -366,35 +381,36 @@ def build():
     add_kicker(s, "EBR · Business Review")
     add_title(s, "Value realized", size=34)
     cards = [
-        ("Velocity", "~2.4 hrs saved per dev/week on boilerplate, tests, refactors (survey n=120)"),
-        ("Quality", "18% faster PR cycle time in Mobility Core (Q-1 cohort)"),
-        ("Scale", "8,385 engineers active in 90 days — fastest enterprise ramp in book"),
+        ("Code velocity", "3× PRs merged for power users via Agents / Cloud workflows"),
+        ("Developer time", "Every agent session ≈ 3 hrs of developer time completed"),
+        ("Quality at speed", "65% PR merge rate — highest among tech vertical customers"),
+        ("Output & ROI", "Average developer ~3× output — savings scale with active cohort"),
     ]
     top = Inches(1.65)
     for i, (title, desc) in enumerate(cards):
-        left = Inches(0.55) + i * Inches(4.15)
-        shape = s.shapes.add_shape(1, left, top, Inches(3.95), Inches(2.0))
+        left = Inches(0.55) + i * Inches(3.08)
+        shape = s.shapes.add_shape(1, left, top, Inches(2.95), Inches(2.35))
         shape.fill.solid()
         shape.fill.fore_color.rgb = SURFACE
         shape.line.color.rgb = RGBColor(0x2A, 0x35, 0x48)
-        tbox = s.shapes.add_textbox(left + Inches(0.15), top + Inches(0.12), Inches(3.65), Inches(1.8))
+        tbox = s.shapes.add_textbox(left + Inches(0.12), top + Inches(0.12), Inches(2.7), Inches(2.1))
         tf = tbox.text_frame
         tf.word_wrap = True
         p = tf.paragraphs[0]
         p.text = title
         p.font.bold = True
-        p.font.size = Pt(14)
+        p.font.size = Pt(13)
         p.font.color.rgb = ACCENT2
         p.font.name = "Segoe UI"
         p = tf.add_paragraph()
         p.text = desc
-        p.font.size = Pt(12)
+        p.font.size = Pt(11)
         p.font.color.rgb = MUTED
         p.font.name = "Segoe UI"
     add_body(s, [
-        "ROI framing: 2.4 hrs/dev/week × 8,385 active × $85/hr ≈ $1.7M/month recovered capacity vs. $980K annual contract.",
-        "Expansion to remaining 46% of SWEs + two new orgs could 2–3× this impact.",
-    ], top=Inches(4.0), size=15, color=TEXT)
+        "ROI framing: ~3× output × 4,392 active devs × 3 hrs saved per agent session → material capacity recovery.",
+        "65% merge rate proves velocity gains without sacrificing quality — foundation for org-wide expansion case.",
+    ], top=Inches(4.25), size=14, color=TEXT)
     add_slide_number(s, num)
 
     # 11 Strategic initiatives
@@ -402,13 +418,12 @@ def build():
     add_kicker(s, "EBR · Business Review")
     add_title(s, "Strategic initiatives supported", size=30)
     add_table(s,
-        ["Uber initiative", "How Cursor supports it", "Status"],
+        ["Databricks initiative", "Team", "Value delivered"],
         [
-            ["Platform modernization", "Agent-assisted migrations; Composer for large-scale refactors", "Active"],
-            ["AI-native developer experience", "Cloud Agents for async tasks; Automations for CI/CD workflows", "Early — 10% cloud"],
-            ["Engineering efficiency metrics", "ADM adoption dashboard; power-user cohort analysis", "In progress"],
-            ["Security & code quality", "Bugbot on PRs; custom rules for service mesh patterns", "Pilot — 2 squads"],
-            ["Cross-org eng standards", "Shared .cursor/rules + champion guild (Elena leading)", "Planned Q+1"],
+            ["Vulnerability backlog burndown", "Trust & Safety", "Cloud Agents + Automations triage and remediate CVEs at ~30× manual pace"],
+            ["Automated test coverage reporting", "App Integration", "Agents generate coverage reports on schedule; ~30× faster than manual audits"],
+            ["Synchronous → async code migration", "Billing", "Cloud workflows migrate legacy sync patterns; ~30× efficiency vs. hand migration"],
+            ["Bug issue triaging", "Core Product", "Automations + Bugbot route, classify, and draft fixes; ~30× triage throughput"],
         ],
         top=Inches(1.55))
     add_slide_number(s, num)
@@ -418,18 +433,17 @@ def build():
     add_kicker(s, "EBR · Business Review")
     add_title(s, "Partnership feedback", size=34)
     add_two_column_cards(s, [
-        ("Highlights", [
-            "Fastest enterprise onboarding — 54% active in 90 days",
-            "Strong agent adoption (92%) — daily driver, not a toy",
-            "Responsive AE + ADM cadence during rollout",
-            "Power-user Slack community (400+ members)",
+        ("Positives", [
+            "Product usability — IDE works really well for daily engineering workflows",
+            "Fantastic initial rollout: ~4,000 developers onboarded in first ~5 months",
+            "Partner team incredibly responsive with clear value framework for code velocity",
+            "Responsive support team — no outstanding issues, all within SLA",
         ]),
         ("Areas for improvement", [
-            "Post-rollout drop-off — need quarterly touchpoints",
-            "Admin bottleneck on cross-org introductions",
-            "Cloud Agent awareness: only 10% using cloud",
-            "Leadership wants team-level dashboards",
-            "Competitor noise: +7% MoM in one Mobility squad",
+            "More admin controls on which models each user can access",
+            "Cloud adoption — highest ROI surface; currently under-penetrated vs. potential",
+            "Building a long-term adoption / education framework beyond initial rollout",
+            "Strategic roadmap alignment — which top initiatives & teams should we co-prioritize?",
         ]),
     ])
     add_slide_number(s, num)
@@ -443,19 +457,19 @@ def build():
             "Isolated VMs with full dev environments",
             "Parallel agents; MCP, multi-repo, artifacts",
             "Trigger: IDE, web, Slack, GitHub, Linear, API",
-            "Uber fit: async refactors across monorepo",
+            "Databricks fit: async migrations across Billing & Core Product",
         ]),
         ("Automations", [
             "Schedule or event-triggered agents",
             "PR, Slack, PagerDuty, webhooks",
             "Marketplace templates + memory",
-            "Uber fit: PR triage, on-call → fix PR",
+            "Databricks fit: vuln burndown, test coverage, bug triage",
         ]),
         ("Bugbot", [
             "Auto-review on every PR; custom rules",
             "70%+ flags resolved before merge",
             "Autofix spawns Cloud Agent to fix & push",
-            "Uber fit: enforce service-mesh patterns",
+            "Databricks fit: Trust & Safety + Core Product quality gates",
         ]),
     ]
     top = Inches(1.6)
@@ -487,16 +501,16 @@ def build():
     add_kicker(s, "EBR · Demo")
     add_title(s, "Demo: Automations with Cloud Agents", size=30)
     add_body(s, [
-        "Weekly PR quality automation for Uber Mobility Core",
+        "Vulnerability backlog automation for Databricks Trust & Safety",
         "",
-        "Trigger: Every Monday 9am PT · GitHub PR merged to mobility-core",
+        "Trigger: Daily 6am PT · new CVE alerts in security queue",
         "",
         "1. Cloud Agent clones repo, reviews last 7 days of merged PRs",
         "2. Runs targeted test suite in isolated VM; captures screenshot artifacts",
-        "3. Posts summary to #mobility-eng Slack with top 3 findings",
+        "3. Posts summary to #trust-safety-eng Slack with prioritized findings",
         "4. If critical: opens draft PR with Autofix via Bugbot integration",
         "",
-        "90-day pilot: Mobility Core (1 squad) → Marketplace → org-wide Automations library",
+        "90-day pilot: Trust & Safety → App Integration → org-wide Automations library",
     ], top=Inches(1.55), size=15, color=TEXT)
     add_slide_number(s, num)
 
@@ -507,11 +521,11 @@ def build():
     add_table(s,
         ["Priority", "Initiative", "Owner", "Timeline", "Success metric"],
         [
-            ["P0", "Appoint rollout owner + unblock 2 eng org intros", "Priya + ADM", "Wk 1–2", "Intros scheduled"],
-            ["P0", "Adoption-depth dashboard for exec visibility", "ADM", "Wk 2–4", "Team-level active/cloud %"],
-            ["P1", "Automations pilot (Mobility Core PR review)", "Marcus + Elena", "Wk 4–8", "Cloud 10% → 20%"],
-            ["P1", "Bugbot rollout to 5 squads with custom rules", "Sofia + SE", "Wk 6–10", "70%+ flag resolution"],
-            ["P2", "Quarterly EBR + expansion business case", "James + AE", "Wk 10–12", "Expansion proposal for 2 orgs"],
+            ["P0", "Strategic roadmap alignment with Naveen / Sam", "ADM + AE", "Wk 1–2", "Top 4 team initiatives confirmed"],
+            ["P0", "Cloud adoption education framework", "ADM + Bruce", "Wk 2–4", "Cloud usage 19% → 30%"],
+            ["P1", "Vuln burndown Automation (Trust & Safety)", "Bruce + SE", "Wk 4–8", "~30× burndown velocity"],
+            ["P1", "Bug triage Automation (Core Product)", "Sam + SE", "Wk 6–10", "Triage throughput 30× baseline"],
+            ["P2", "Quarterly EBR + expansion business case", "Naveen + AE", "Wk 10–12", "Expansion proposal presented"],
         ],
         top=Inches(1.55))
     add_slide_number(s, num)
@@ -569,7 +583,7 @@ def build():
     add_kicker(s, "Thank you")
     add_title(s, "Questions & discussion", top=Inches(2.8), size=44)
     add_body(s, [
-        "Ready to role-play the Uber EBR live, walk through the Automations demo,",
+        "Ready to role-play the Databricks EBR live, walk through the Automations demo,",
         "or deep-dive any account in the portfolio.",
         "",
         "Gabriel Smith · ADM Interview · Portfolio exercise data confidential",
