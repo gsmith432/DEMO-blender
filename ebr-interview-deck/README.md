@@ -1,24 +1,29 @@
 # Executive Business Review — ADM Interview Deck
 
-Interactive HTML presentation for the Cursor AI Deployment Manager interview exercise.
+Presentation for the Cursor AI Deployment Manager interview exercise.
 
-## Open the deck
+## PowerPoint (primary)
+
+**File:** `Executive_Business_Review_ADM_Interview.pptx` (19 slides)
+
+Open in Microsoft PowerPoint, Google Slides (upload), or Keynote.
+
+To regenerate:
 
 ```bash
-# Option 1: open in browser
-xdg-open /home/ubuntu/EBR-Interview-Deck/index.html
-
-# Option 2: serve locally
-cd /home/ubuntu/EBR-Interview-Deck && python3 -m http.server 8080
-# Then visit http://localhost:8080
+pip install python-pptx
+python3 build_pptx.py
 ```
 
-## Navigation
+## HTML version (alternate)
 
-- **Scroll** or use **↑ / ↓** arrow keys (also ← → and Space)
-- **Print to PDF:** Ctrl+P / Cmd+P (each slide is a page)
+```bash
+xdg-open index.html
+```
 
-## Contents (18 slides)
+Use scroll or arrow keys to navigate; Ctrl+P for PDF export.
+
+## Contents (19 slides)
 
 1. Title
 2. Agenda
