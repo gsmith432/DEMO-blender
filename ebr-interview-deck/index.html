@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Executive Business Review — ADM Interview Deck</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --surface: #121820;
+      --surface-2: #1a2230;
+      --text: #e8edf5;
+      --muted: #9aa8bc;
+      --accent: #6ee7b7;
+      --accent-2: #60a5fa;
+      --warn: #fbbf24;
+      --danger: #f87171;
+      --border: #2a3548;
+      --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    .deck {
+      height: 100vh;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+    }
+
+    .slide {
+      min-height: 100vh;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 4rem 6rem;
+      position: relative;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 80% 20%, rgba(96, 165, 250, 0.08), transparent 50%),
+                  radial-gradient(ellipse at 10% 80%, rgba(110, 231, 183, 0.06), transparent 45%);
+      pointer-events: none;
+    }
+
+    .slide > * { position: relative; z-index: 1; }
+
+    .kicker {
+      font-size: 0.8rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
+
+    h1 {
+      font-size: 3rem;
+      line-height: 1.1;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      max-width: 900px;
+    }
+
+    h2 {
+      font-size: 2.25rem;
+      margin-bottom: 1.5rem;
+      font-weight: 700;
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      color: var(--accent-2);
+      margin: 1.25rem 0 0.5rem;
+      font-weight: 600;
+    }
+
+    .subtitle {
+      font-size: 1.35rem;
+      color: var(--muted);
+      max-width: 720px;
+      line-height: 1.5;
+    }
+
+    .meta {
+      margin-top: 2rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    ul, ol {
+      margin-left: 1.25rem;
+      line-height: 1.65;
+      font-size: 1.05rem;
+    }
+
+    li { margin-bottom: 0.45rem; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.35rem;
+    }
+
+    .card h4 {
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .card p, .card li {
+      font-size: 0.92rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .card ul { margin-left: 1rem; }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      margin-bottom: 0.5rem;
+    }
+
+    .tag.green { background: rgba(110, 231, 183, 0.15); color: var(--accent); }
+    .tag.yellow { background: rgba(251, 191, 36, 0.15); color: var(--warn); }
+    .tag.red { background: rgba(248, 113, 113, 0.15); color: var(--danger); }
+    .tag.blue { background: rgba(96, 165, 250, 0.15); color: var(--accent-2); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.88rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.65rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .highlight { color: var(--accent); font-weight: 600; }
+    .small { font-size: 0.85rem; color: var(--muted); }
+
+    .nav-hint {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.5rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      z-index: 100;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.85rem;
+      border-radius: 8px;
+    }
+
+    .slide-num {
+      position: absolute;
+      bottom: 2rem;
+      right: 6rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .title-slide {
+      justify-content: flex-end;
+      padding-bottom: 6rem;
+    }
+
+    .title-slide h1 { font-size: 3.5rem; }
+
+    .agenda-list {
+      list-style: none;
+      margin: 0;
+      counter-reset: agenda;
+    }
+
+    .agenda-list li {
+      counter-increment: agenda;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .agenda-list li::before {
+      content: counter(agenda, decimal-leading-zero);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 1rem;
+      min-width: 2rem;
+    }
+
+    .demo-box {
+      background: var(--surface-2);
+      border: 1px dashed var(--accent-2);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-top: 1rem;
+    }
+
+    .demo-box strong { color: var(--accent-2); }
+
+    @media (max-width: 1100px) {
+      .slide { padding: 3rem 2rem; }
+      h1 { font-size: 2.25rem; }
+      h2 { font-size: 1.75rem; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      body { overflow: visible; }
+      .deck { overflow: visible; height: auto; }
+      .slide { min-height: auto; page-break-after: always; padding: 2rem; }
+      .nav-hint { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="nav-hint">Scroll or ↑↓ to navigate slides</div>
+  <div class="deck" id="deck">
+
+    <!-- SLIDE 1: Title -->
+    <section class="slide title-slide">
+      <div class="kicker">AI Deployment Manager — Interview Exercise</div>
+      <h1>Executive Business Review</h1>
+      <p class="subtitle">Portfolio prioritization, champion strategy, and a live EBR role-play with Uber Engineering Leadership.</p>
+      <p class="meta">Gabriel Smith &nbsp;·&nbsp; Confidential — fictional scenario data &nbsp;·&nbsp; July 2026</p>
+      <span class="slide-num">01</span>
+    </section>
+
+    <!-- SLIDE 2: Agenda -->
+    <section class="slide">
+      <div class="kicker">Overview</div>
+      <h2>Agenda</h2>
+      <ol class="agenda-list">
+        <li>Portfolio prioritization — top 5 accounts &amp; 2 deprioritized</li>
+        <li>Champion strategy — 5 individuals at Uber (prioritized account)</li>
+        <li>EBR role-play — Business review with Uber Engineering</li>
+        <li>Product roadmap — Cloud Agents, Automations, Bugbot + live demo</li>
+        <li>Strategic initiatives — where to prioritize &amp; 90-day next steps</li>
+        <li>Asks for Cursor leadership</li>
+      </ol>
+      <span class="slide-num">02</span>
+    </section>
+
+    <!-- SLIDE 3: Portfolio Framework -->
+    <section class="slide">
+      <div class="kicker">Portfolio</div>
+      <h2>Prioritization framework</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h4>ADM fit</h4>
+          <p>Metrics &amp; ROI storytelling, enterprise rollouts, champion building — work only an ADM can do post-sale.</p>
+        </div>
+        <div class="card">
+          <h4>Scale &amp; whitespace</h4>
+          <p>4K+ SWEs with meaningful headroom (&lt;60% active or &lt;15% power-user penetration).</p>
+        </div>
+        <div class="card">
+          <h4>Retention urgency</h4>
+          <p>Health, renewal timing, ARR at risk, and rising competitor trends.</p>
+        </div>
+        <div class="card">
+          <h4>Growth trajectory</h4>
+          <p>Positive or recoverable MoM active-user trend; limited competitor displacement.</p>
+        </div>
+        <div class="card">
+          <h4>Strategic value</h4>
+          <p>Partnerships, references, ecosystem unlock (e.g., Databricks).</p>
+        </div>
+        <div class="card">
+          <h4>Expansion runway</h4>
+          <p>Low cloud / agent usage → Automations &amp; Bugbot upsell opportunity.</p>
+        </div>
+      </div>
+      <p class="small" style="margin-top:1.25rem;">12-account mixed book · $195K–$1.4M ARR · renewal 3–9 months · data from ADM Portfolio Exercise</p>
+      <span class="slide-num">03</span>
+    </section>
+
+    <!-- SLIDE 4: Top 5 Prioritize -->
+    <section class="slide">
+      <div class="kicker">Portfolio</div>
+      <h2>Top 5 accounts to prioritize (next 90 days)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Account</th>
+            <th>ARR</th>
+            <th>Health</th>
+            <th>SWEs</th>
+            <th>Active %</th>
+            <th>Cloud %</th>
+            <th>Why prioritize</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>LinkedIn</strong></td>
+            <td>$1.40M</td>
+            <td><span class="tag red">Red</span></td>
+            <td>10,025</td>
+            <td>25%</td>
+            <td>3.7%</td>
+            <td>Highest ARR at risk; hackathon interest in agentic workflows; massive whitespace +31% competitor trend. <span class="highlight">#1 priority.</span></td>
+          </tr>
+          <tr>
+            <td><strong>Uber</strong></td>
+            <td>$980K</td>
+            <td><span class="tag green">Green</span></td>
+            <td>15,423</td>
+            <td>54%</td>
+            <td>10.3%</td>
+            <td>Post-rollout engagement gap; expand into 2 additional eng orgs; build champions &amp; cloud adoption. Largest SWE base.</td>
+          </tr>
+          <tr>
+            <td><strong>Spotify</strong></td>
+            <td>$1.00M</td>
+            <td><span class="tag yellow">Yellow</span></td>
+            <td>3,525</td>
+            <td>40%</td>
+            <td>10.2%</td>
+            <td>Exec wants org-wide expansion but needs adoption-depth proof — core ADM metrics/ROI work. Retention play vs. +39% competitor.</td>
+          </tr>
+          <tr>
+            <td><strong>Databricks</strong></td>
+            <td>$420K</td>
+            <td><span class="tag yellow">Yellow</span></td>
+            <td>5,480</td>
+            <td>80%</td>
+            <td>19.2%</td>
+            <td>Strategic ecosystem partnership; under-monetized ($420K / 5.5K SWE); QBR this quarter; competitor declining.</td>
+          </tr>
+          <tr>
+            <td><strong>Workday</strong></td>
+            <td>$1.25M</td>
+            <td><span class="tag yellow">Yellow</span></td>
+            <td>7,095</td>
+            <td>93%</td>
+            <td>33.1%</td>
+            <td>+50% MoM growth; broad adoption but limited visibility into team-level usage — ADM runs consumption analysis &amp; ROI story for renewal.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="small" style="margin-top:0.75rem;">Note: Strong alternate for Workday is <strong>Stripe</strong> ($1.35M, Red, 4 mo renewal, 2.5% cloud, no rollout owner) — discuss trade-off in interview.</p>
+      <span class="slide-num">04</span>
+    </section>
+
+    <!-- SLIDE 5: Deprioritize -->
+    <section class="slide">
+      <div class="kicker">Portfolio</div>
+      <h2>2 accounts to deprioritize</h2>
+      <div class="grid-2">
+        <div class="card">
+          <span class="tag red">Deprioritize</span>
+          <h4>Figma — $280K · 737 SWEs · 3 mo renewal</h4>
+          <ul>
+            <li><strong>100% penetration</strong> but declining: −12% MoM active, −15.75% competitor trend</li>
+            <li>Active competitor pilot in progress — ADM can't add headcount</li>
+            <li>This is competitive defense / product fit, not rollout or champion work</li>
+            <li>Already end-to-end; limited 90-day ADM leverage</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="tag red">Deprioritize</span>
+          <h4>Notion — $195K · 874 SWEs · 3 mo renewal</h4>
+          <ul>
+            <li>Conversations stuck on <strong>unresolved product/security concerns</strong>, not growth</li>
+            <li>ADM can escalate feedback but <strong>cannot fix blockers in 90 days</strong></li>
+            <li>Below 4K SWE bar; small commercial footprint</li>
+            <li>Putting ADM in an oversold position damages trust — route to Product/Eng first</li>
+          </ul>
+        </div>
+      </div>
+      <h3>Also on watch (not in top 5)</h3>
+      <p class="small">Disney (12K SWE, no exec sponsor, +18% competitor) · Rivian (AE deprioritized, over-provisioned licenses) · Gusto (below 4K SWE, 96% penetrated)</p>
+      <span class="slide-num">05</span>
+    </section>
+
+    <!-- SLIDE 6: Champions intro -->
+    <section class="slide">
+      <div class="kicker">Champions</div>
+      <h2>Champion strategy — Uber</h2>
+      <p class="subtitle" style="margin-bottom:1rem;">Selected account for Task 2: largest SWE footprint, post-rollout whitespace, and AE-identified expansion into two additional engineering orgs. Champions identified via public org research + partnership notes.</p>
+      <div class="grid-3">
+        <div class="card"><h4>Goal</h4><p>Convert power users into org-wide advocates; establish rollout owner where none exists today.</p></div>
+        <div class="card"><h4>Signal</h4><p>Strong Q-1 onboarding, then engagement drop — classic champion vacuum after initial rollout.</p></div>
+        <div class="card"><h4>Outcome</h4><p>3 champions activated in 90 days → exec EBR with adoption-depth metrics &amp; expansion business case.</p></div>
+      </div>
+      <span class="slide-num">06</span>
+    </section>
+
+    <!-- SLIDE 7: Champions table -->
+    <section class="slide">
+      <div class="kicker">Champions</div>
+      <h2>5 champion targets at Uber</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Why they should be a champion</th>
+            <th>First meeting (30 min)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Priya Sharma</strong></td>
+            <td>Director of Engineering, Developer Platform</td>
+            <td>Owns internal dev tooling standards across Uber's largest eng orgs. Public talks on platform engineering. Natural buyer for org-wide Cursor rollout governance.</td>
+            <td><strong>Listen:</strong> Current tooling pain &amp; rollout gaps post-onboarding.<br><strong>Show:</strong> Peer benchmark (54% active vs. industry 70%+).<br><strong>Ask:</strong> Co-own a 90-day "depth over breadth" playbook.</td>
+          </tr>
+          <tr>
+            <td><strong>Marcus Webb</strong></td>
+            <td>Sr. Engineering Manager, Mobility Core</td>
+            <td>Manages one of the two eng orgs AE flagged for expansion. Team has high agent usage (92%) but low cloud (10%) — ready for automation upsell.</td>
+            <td><strong>Listen:</strong> How his team uses Cursor today vs. legacy workflows.<br><strong>Show:</strong> Power-user workflow teardown (2,757 power users in org).<br><strong>Ask:</strong> Pilot Automations for PR review in his squad.</td>
+          </tr>
+          <tr>
+            <td><strong>Elena Vasquez</strong></td>
+            <td>Staff Engineer, AI Developer Experience</td>
+            <td>Internal AI tooling advocate; runs guild sessions. Already a de facto power user — can scale best practices to 8K+ inactive-adjacent engineers.</td>
+            <td><strong>Listen:</strong> What blocked sustained engagement after Q-1 rollout.<br><strong>Show:</strong> Cloud Agent + Automations demo tailored to Uber's monorepo.<br><strong>Ask:</strong> Co-host an internal "Agentic Dev" lunch &amp; learn.</td>
+          </tr>
+          <tr>
+            <td><strong>James Okonkwo</strong></td>
+            <td>VP Engineering, Marketplace</td>
+            <td>Exec sponsor candidate for second expansion org. Needs ROI proof before commercial conversation — exactly the ADM metrics story.</td>
+            <td><strong>Listen:</strong> His expansion criteria &amp; procurement timeline.<br><strong>Show:</strong> 90-day adoption-depth dashboard (active %, power-user %, time saved).<br><strong>Ask:</strong> Quarterly business review cadence &amp; success criteria.</td>
+          </tr>
+          <tr>
+            <td><strong>Sofia Lindström</strong></td>
+            <td>Principal Engineer, Infrastructure</td>
+            <td>Highly credible technical voice; influences security &amp; compliance reviews for new tooling. Can unblock admin coordination bottleneck AE noted.</td>
+            <td><strong>Listen:</strong> Security/compliance concerns slowing cross-org rollout.<br><strong>Show:</strong> Enterprise controls: SSO, audit logs, Bugbot rules.<br><strong>Ask:</strong> Join admin working group to unblock introductions to other orgs.</td>
+          </tr>
+        </tbody>
+      </table>
+      <span class="slide-num">07</span>
+    </section>
+
+    <!-- SLIDE 8: EBR Role Play Intro -->
+    <section class="slide">
+      <div class="kicker">EBR Role Play</div>
+      <h2>Executive Business Review — Uber</h2>
+      <p class="subtitle">Simulated QBR with James Okonkwo (VP Eng, Marketplace) + Priya Sharma (Dir, Developer Platform). Account: $980K ARR · 15,423 SWEs · Green health · 7 mo to renewal.</p>
+      <div class="grid-2" style="margin-top:1.5rem;">
+        <div class="card">
+          <h4>Attendees (Cursor)</h4>
+          <ul>
+            <li>ADM — Gabriel Smith (facilitator)</li>
+            <li>Account Executive — partnership &amp; commercial</li>
+            <li>Solutions Engineer — technical deep-dives</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>Attendees (Uber)</h4>
+          <ul>
+            <li>James Okonkwo — VP Eng, Marketplace</li>
+            <li>Priya Sharma — Dir, Developer Platform</li>
+            <li>Elena Vasquez — Staff Eng, AI DevEx (optional)</li>
+          </ul>
+        </div>
+      </div>
+      <span class="slide-num">08</span>
+    </section>
+
+    <!-- SLIDE 9: Usage / Partnership -->
+    <section class="slide">
+      <div class="kicker">EBR · Business Review</div>
+      <h2>Usage &amp; partnership to date</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h4>Adoption snapshot</h4>
+          <table>
+            <tr><td>L30D active users</td><td><strong>8,385</strong> (54% of SWEs)</td></tr>
+            <tr><td>Power users</td><td><strong>2,757</strong> (17.9% of SWEs)</td></tr>
+            <tr><td>MoM active trend</td><td><strong class="highlight">+15%</strong></td></tr>
+            <tr><td>Agent usage</td><td>92%</td></tr>
+            <tr><td>Composer usage</td><td>39.9%</td></tr>
+            <tr><td>Cloud Agent usage</td><td>10.3%</td></tr>
+            <tr><td>Competitor trend</td><td>+7.2% MoM</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h4>Partnership timeline</h4>
+          <ul>
+            <li><strong>Q-1:</strong> Enterprise onboarding — strong initial rollout across Mobility &amp; Platform orgs</li>
+            <li><strong>Q0 (now):</strong> Engagement plateau post-rollout; no dedicated rollout owner</li>
+            <li><strong>AE pipeline:</strong> Two additional eng orgs identified; admin slow to coordinate intros</li>
+            <li><strong>Renewal:</strong> 7 months — healthy sentiment, but depth proof needed for expansion</li>
+          </ul>
+        </div>
+      </div>
+      <span class="slide-num">09</span>
+    </section>
+
+    <!-- SLIDE 10: Value Realized -->
+    <section class="slide">
+      <div class="kicker">EBR · Business Review</div>
+      <h2>Value realized</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h4>Velocity</h4>
+          <p>Power users report <strong>~2.4 hrs saved per dev/week</strong> on boilerplate, test scaffolding, and cross-service refactors (internal survey, n=120).</p>
+        </div>
+        <div class="card">
+          <h4>Quality</h4>
+          <p>Teams using Agent + Composer show <strong>18% faster PR cycle time</strong> in Mobility Core (before/after Q-1 rollout cohort).</p>
+        </div>
+        <div class="card">
+          <h4>Scale</h4>
+          <p>8,385 engineers active in 90 days — one of the fastest enterprise ramp-ups in Cursor's book. Onboarding playbook is now a reference for similar accounts.</p>
+        </div>
+      </div>
+      <h3>ROI framing for exec audience</h3>
+      <p style="font-size:1.05rem; line-height:1.6; max-width:900px;">
+        At 2.4 hrs/dev/week × 8,385 active devs × $85/hr fully loaded eng cost ≈ <strong>$1.7M/month in recovered capacity</strong> — against $980K annual contract. Expansion to remaining 46% of SWEs and two new orgs could 2–3× this impact.
+      </p>
+      <span class="slide-num">10</span>
+    </section>
+
+    <!-- SLIDE 11: Strategic Initiatives Supported -->
+    <section class="slide">
+      <div class="kicker">EBR · Business Review</div>
+      <h2>Strategic initiatives supported</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Uber initiative</th>
+            <th>How Cursor supports it</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Platform modernization</strong></td>
+            <td>Agent-assisted migrations across legacy services; Composer for large-scale refactors</td>
+            <td><span class="tag green">Active</span></td>
+          </tr>
+          <tr>
+            <td><strong>AI-native developer experience</strong></td>
+            <td>Cloud Agents for async tasks; Automations for CI/CD-adjacent workflows</td>
+            <td><span class="tag yellow">Early</span> — 10% cloud adoption</td>
+          </tr>
+          <tr>
+            <td><strong>Engineering efficiency metrics</strong></td>
+            <td>ADM-built adoption dashboard; power-user cohort analysis for OKR tracking</td>
+            <td><span class="tag blue">In progress</span></td>
+          </tr>
+          <tr>
+            <td><strong>Security &amp; code quality at scale</strong></td>
+            <td>Bugbot on PRs; custom rules for Uber's service mesh patterns</td>
+            <td><span class="tag yellow">Pilot</span> — 2 squads</td>
+          </tr>
+          <tr>
+            <td><strong>Cross-org engineering standards</strong></td>
+            <td>Shared .cursor/rules + champion guild (Elena Vasquez leading)</td>
+            <td><span class="tag yellow">Planned</span> Q+1</td>
+          </tr>
+        </tbody>
+      </table>
+      <span class="slide-num">11</span>
+    </section>
+
+    <!-- SLIDE 12: Partnership Feedback -->
+    <section class="slide">
+      <div class="kicker">EBR · Business Review</div>
+      <h2>Partnership feedback</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h4>Highlights</h4>
+          <ul>
+            <li>Fastest enterprise onboarding Cursor has run — 54% active in 90 days</li>
+            <li>Strong agent adoption (92%) — engineers see Cursor as daily driver, not a toy</li>
+            <li>Responsive AE + ADM cadence during rollout; exec visibility on kickoff</li>
+            <li>Power-user community self-organizing (internal Slack channel, 400+ members)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>Areas for improvement</h4>
+          <ul>
+            <li><strong>Post-rollout drop-off:</strong> No sustained enablement after Q-1 — need quarterly touchpoints</li>
+            <li><strong>Admin bottleneck:</strong> Cross-org introductions stalled; need dedicated rollout owner on Uber side</li>
+            <li><strong>Cloud Agent awareness:</strong> Only 10% using cloud — teams don't know when to use async vs. inline</li>
+            <li><strong>Consumption visibility:</strong> Uber leadership wants team-level dashboards, not just org-wide %</li>
+            <li><strong>Competitor noise:</strong> +7% MoM competitor trend in one Mobility squad — need displacement playbook</li>
+          </ul>
+        </div>
+      </div>
+      <span class="slide-num">12</span>
+    </section>
+
+    <!-- SLIDE 13: Product Roadmap -->
+    <section class="slide">
+      <div class="kicker">EBR · Product Roadmap</div>
+      <h2>What's next — Cursor product roadmap</h2>
+      <div class="grid-3">
+        <div class="card">
+          <span class="tag blue">Cloud Agents</span>
+          <h4>Agents that run in the cloud</h4>
+          <ul>
+            <li>Isolated VMs with full dev environments — build, test, demo</li>
+            <li>Parallel agents; no local machine required</li>
+            <li>MCP, multi-repo, artifacts (screenshots, videos, PRs)</li>
+            <li>Trigger from IDE, web, Slack, GitHub, Linear, API</li>
+          </ul>
+          <p class="small" style="margin-top:0.5rem;"><strong>Uber fit:</strong> Async refactors across monorepo + microservices without blocking local dev.</p>
+        </div>
+        <div class="card">
+          <span class="tag green">Automations</span>
+          <h4>Always-on agents</h4>
+          <ul>
+            <li>Schedule or event-triggered (PR, Slack, PagerDuty, webhooks)</li>
+            <li>Marketplace templates: bug find, vuln scan, daily digest</li>
+            <li>Memory + MCP for cross-run learning</li>
+            <li>Single-repo, multi-repo, or no-repo modes</li>
+          </ul>
+          <p class="small" style="margin-top:0.5rem;"><strong>Uber fit:</strong> PR triage, on-call incident → fix PR, weekly adoption reports to eng leads.</p>
+        </div>
+        <div class="card">
+          <span class="tag yellow">Bugbot</span>
+          <h4>AI code review at scale</h4>
+          <ul>
+            <li>Auto-review on every PR; custom Bugbot Rules</li>
+            <li>70%+ of flags resolved before merge</li>
+            <li><strong>Autofix:</strong> spawns Cloud Agent to fix &amp; push</li>
+            <li>Enterprise API for per-review analytics</li>
+          </ul>
+          <p class="small" style="margin-top:0.5rem;"><strong>Uber fit:</strong> Enforce service-mesh patterns; reduce review burden on 2,757 power users.</p>
+        </div>
+      </div>
+      <span class="slide-num">13</span>
+    </section>
+
+    <!-- SLIDE 14: Demo -->
+    <section class="slide">
+      <div class="kicker">EBR · Demo</div>
+      <h2>Demo: Automations with Cloud Agents</h2>
+      <p class="subtitle" style="margin-bottom:1rem;">Live walkthrough — "Weekly PR quality automation for Uber Mobility Core"</p>
+      <div class="demo-box">
+        <p><strong>Trigger:</strong> Every Monday 9am PT · GitHub PR merged to <code>mobility-core</code></p>
+        <p style="margin-top:0.5rem;"><strong>Automation flow:</strong></p>
+        <ol style="margin-top:0.5rem;">
+          <li>Cloud Agent clones repo, reviews last 7 days of merged PRs for regressions &amp; pattern violations</li>
+          <li>Runs targeted test suite in isolated VM; captures screenshot artifacts</li>
+          <li>Posts summary to #mobility-eng Slack with top 3 findings + "Fix in Cursor" links</li>
+          <li>If critical: opens draft PR with Autofix via Bugbot integration</li>
+        </ol>
+      </div>
+      <div class="grid-2" style="margin-top:1rem;">
+        <div class="card">
+          <h4>Why this matters for Uber</h4>
+          <p>Converts 10% cloud usage → daily async workflow. Champions (Marcus, Elena) can own the automation config. Measurable: PR defects caught, time-to-fix, eng hours saved.</p>
+        </div>
+        <div class="card">
+          <h4>90-day pilot proposal</h4>
+          <p>Deploy in Mobility Core (1 squad) → expand to Marketplace → template for org-wide Automations library. ADM owns success metrics &amp; champion enablement.</p>
+        </div>
+      </div>
+      <span class="slide-num">14</span>
+    </section>
+
+    <!-- SLIDE 15: Strategic Initiatives -->
+    <section class="slide">
+      <div class="kicker">EBR · Strategic Initiatives</div>
+      <h2>Where to prioritize &amp; next steps</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Priority</th>
+            <th>Initiative</th>
+            <th>Owner</th>
+            <th>Timeline</th>
+            <th>Success metric</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag red">P0</span></td>
+            <td>Appoint rollout owner (Uber side) + unblock 2 eng org intros</td>
+            <td>Priya + ADM</td>
+            <td>Week 1–2</td>
+            <td>Intros scheduled to Marketplace + Infra orgs</td>
+          </tr>
+          <tr>
+            <td><span class="tag red">P0</span></td>
+            <td>Adoption-depth dashboard for exec visibility</td>
+            <td>ADM</td>
+            <td>Week 2–4</td>
+            <td>Team-level active %, power-user %, cloud %</td>
+          </tr>
+          <tr>
+            <td><span class="tag yellow">P1</span></td>
+            <td>Automations pilot (Mobility Core weekly PR review)</td>
+            <td>Marcus + Elena</td>
+            <td>Week 4–8</td>
+            <td>Cloud usage 10% → 20% in pilot squad</td>
+          </tr>
+          <tr>
+            <td><span class="tag yellow">P1</span></td>
+            <td>Bugbot rollout to 5 squads with custom rules</td>
+            <td>Sofia + SE</td>
+            <td>Week 6–10</td>
+            <td>70%+ flag resolution rate</td>
+          </tr>
+          <tr>
+            <td><span class="tag blue">P2</span></td>
+            <td>Quarterly EBR cadence + expansion business case</td>
+            <td>James + AE</td>
+            <td>Week 10–12</td>
+            <td>Expansion proposal for 2 orgs presented</td>
+          </tr>
+        </tbody>
+      </table>
+      <span class="slide-num">15</span>
+    </section>
+
+    <!-- SLIDE 16: Asks for Leadership -->
+    <section class="slide">
+      <div class="kicker">Asks for Cursor Leadership</div>
+      <h2>3 areas where I need leadership support</h2>
+      <div class="card" style="margin-bottom:1rem;">
+        <h4>1. Ongoing product ↔ field forum sessions</h4>
+        <p><strong>Ask:</strong> Establish a bi-weekly ADM + Product + Eng forum to surface field signal (blockers, feature requests, competitive intel) and get roadmap visibility.</p>
+        <p style="margin-top:0.5rem;"><strong>My question:</strong> <em>What is our forum today?</em> Is there an existing channel (Slack, Notion, PM office hours), or do ADMs route feedback ad hoc through AEs? I want a structured loop so accounts like Notion get product attention without ADM over-promising.</p>
+      </div>
+      <div class="card" style="margin-bottom:1rem;">
+        <h4>2. Cursor exec leadership to unlock next-level partnerships</h4>
+        <p><strong>Ask:</strong> For strategic accounts (Databricks, LinkedIn, Uber), secure exec-to-exec alignment — not just ADM + VP Eng, but Cursor leadership in the room for QBRs and ecosystem conversations.</p>
+        <p style="margin-top:0.5rem;"><strong>Why:</strong> Databricks flagged as strategically important; LinkedIn hackathon is an expansion trigger. Exec sponsorship accelerates procurement, references, and co-marketing.</p>
+      </div>
+      <div class="card">
+        <h4>3. Quarterly feedback sessions with leadership</h4>
+        <p><strong>Ask:</strong> 30-min quarterly 1:1 with ADM leadership for coaching on portfolio strategy, account prioritization, and career growth.</p>
+        <p style="margin-top:0.5rem;"><strong>My question:</strong> <em>Where am I falling short?</em> Specifically: Am I overweighting expansion vs. retention? Is my framework missing dimensions (e.g., renewal risk — as flagged in portfolio review)? How should I balance strategic accounts (Databricks) vs. ARR-at-risk accounts (LinkedIn, Stripe)?</p>
+      </div>
+      <span class="slide-num">16</span>
+    </section>
+
+    <!-- SLIDE 17: Alignment Ask -->
+    <section class="slide">
+      <div class="kicker">Asks for Cursor Leadership</div>
+      <h2>Alignment: which accounts are actually strategic?</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h4>The tension</h4>
+          <p>My book has 12 accounts. Framework says prioritize whitespace + ADM fit. Leadership may have different strategic bets (Databricks ecosystem, Workday reference, Disney logo).</p>
+          <p style="margin-top:0.75rem;"><strong>Question:</strong> <em>How much of my time should be saving vs. expanding?</em></p>
+          <ul style="margin-top:0.5rem;">
+            <li><strong>Saving:</strong> LinkedIn (Red, $1.4M), Stripe (Red, 4 mo), Spotify (+39% competitor)</li>
+            <li><strong>Expanding:</strong> Uber (2 new orgs), Databricks (QBR), Workday (consumption story)</li>
+            <li><strong>Monitoring:</strong> Workday (+50% MoM, 93% active) — healthy, limited ADM ROI</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>Proposed time allocation (90 days)</h4>
+          <table>
+            <tr><td>Retention / save</td><td><strong>40%</strong></td><td>LinkedIn, Spotify, Stripe check-ins</td></tr>
+            <tr><td>Expansion / depth</td><td><strong>40%</strong></td><td>Uber, Databricks, champion programs</td></tr>
+            <tr><td>Strategic / light touch</td><td><strong>20%</strong></td><td>Workday consumption analysis, Disney watch</td></tr>
+          </table>
+          <p class="small" style="margin-top:0.75rem;">Seeking leadership sign-off so ADM time maps to company priorities, not just my framework.</p>
+        </div>
+      </div>
+      <span class="slide-num">17</span>
+    </section>
+
+    <!-- SLIDE 18: Close -->
+    <section class="slide title-slide">
+      <div class="kicker">Thank you</div>
+      <h1>Questions &amp; discussion</h1>
+      <p class="subtitle">Ready to role-play the Uber EBR live, walk through the Automations demo, or deep-dive any account in the portfolio.</p>
+      <p class="meta">Gabriel Smith · ADM Interview · Portfolio exercise data confidential</p>
+      <span class="slide-num">18</span>
+    </section>
+
+  </div>
+
+  <script>
+  (function () {
+    const deck = document.getElementById('deck');
+    const slides = [...deck.querySelectorAll('.slide')];
+    let idx = 0;
+
+    function go(n) {
+      idx = Math.max(0, Math.min(slides.length - 1, n));
+      slides[idx].scrollIntoView({ behavior: 'smooth' });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        go(idx + 1);
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        go(idx - 1);
+      }
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          idx = slides.indexOf(entry.target);
+        }
+      });
+    }, { threshold: 0.55 });
+
+    slides.forEach((s) => observer.observe(s));
+  })();
+  </script>
+</body>
+</html>
