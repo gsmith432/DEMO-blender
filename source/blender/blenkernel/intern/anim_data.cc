@@ -37,6 +37,7 @@
 #include "BLI_alloca.hh"
 #include "BLI_dynstr.hh"
 #include "BLI_listbase.hh"
+#include "BLI_set.hh"
 #include "BLI_string.hh"
 #include "BLI_string_utf8.hh"
 #include "BLI_utildefines.hh"
@@ -938,34 +939,37 @@ void BKE_action_fix_paths_rename(ID *owner_id,
 }
 
 /* Fix all targets that point to the given ID. */
-static bool driver_target_path_fix(ID &owner_id,
+static bool driver_target_path_fix(ID &target_id,
                                    const StringRef prefix,
                                    const StringRef old_infix,
                                    const StringRef new_infix,
                                    const DriverMap &driver_map)
 {
-  const Vector<DriverTarget *> *target_uses = driver_map.lookup_ptr(&owner_id);
+  const Vector<DriverTargetRef> *target_uses = driver_map.lookup_ptr(&target_id);
   if (!target_uses) {
     return false;
   }
 
   bool is_changed = false;
-  for (DriverTarget *target : *target_uses) {
-    BLI_assert_msg(target->id == &owner_id,
+  Set<ID *> owners_to_tag;
+  for (const DriverTargetRef &target_ref : *target_uses) {
+    DriverTarget *target = target_ref.target;
+    BLI_assert_msg(target->id == &target_id,
                    "Driver Map for this ID contains targets for another ID.");
+    bool target_changed = false;
     if (target->rna_path) {
       /* This cannot verify paths because driver paths are not always valid rna paths. They can end
        * in e.g. ".location[0]" while "location" + array index integer would be correct. */
       std::optional<std::string> fixed_path = rna_path_rename_fix(
-          owner_id, prefix, old_infix, new_infix, target->rna_path, /*verify_paths=*/false);
+          target_id, prefix, old_infix, new_infix, target->rna_path, /*verify_paths=*/false);
       if (fixed_path.has_value()) {
         MEM_delete(target->rna_path);
         target->rna_path = BLI_strdup(fixed_path->c_str());
-        is_changed = true;
+        target_changed = true;
       }
     }
 
-    if (GS(owner_id.name) == ID_OB && target->pchan_name[0] && prefix.find("bones")) {
+    if (GS(target_id.name) == ID_OB && target->pchan_name[0] && prefix.find("bones")) {
       /* If the target is a bone we can assume that the infix will be surrounded with square
        * brackets and escaped. */
       BLI_assert(old_infix.size() >= 4);
@@ -973,9 +977,20 @@ static bool driver_target_path_fix(ID &owner_id,
       if (old_bone_name == StringRef(target->pchan_name)) {
         const std::string new_bone_name = infix_to_name(new_infix);
         BLI_strncpy(target->pchan_name, new_bone_name.data(), MAXBONENAME);
-        is_changed = true;
+        target_changed = true;
       }
     }
+
+    if (target_changed) {
+      /* Driver targets live on the owning ID's AnimData. Tag that owner so copy-on-write picks up
+       * the rewritten path; tagging only `target_id` leaves evaluated drivers stale and broken. */
+      owners_to_tag.add(target_ref.owner_id);
+      is_changed = true;
+    }
+  }
+
+  for (ID *owner_id : owners_to_tag) {
+    DEG_id_tag_update(owner_id, ID_RECALC_SYNC_TO_EVAL);
   }
 
   return is_changed;
@@ -984,7 +999,7 @@ static bool driver_target_path_fix(ID &owner_id,
 DriverMap BKE_animdata_build_driver_target_map(Main &bmain)
 {
   DriverMap map;
-  BKE_animdata_main_cb(&bmain, [&](ID * /* id */, AnimData *adt) {
+  BKE_animdata_main_cb(&bmain, [&](ID *id, AnimData *adt) {
     for (const FCurve &driver : adt->drivers) {
       if (!driver.driver) {
         continue;
@@ -994,7 +1009,7 @@ DriverMap BKE_animdata_build_driver_target_map(Main &bmain)
           if (!target.id) {
             continue;
           }
-          map.lookup_or_add_default(target.id).append(&target);
+          map.lookup_or_add_default(target.id).append({id, &target});
         }
       }
     }
@@ -1032,6 +1047,9 @@ void BKE_animdata_fix_paths(ID &id,
         id, prefix, old_infix, new_infix, nlt.strips, verify_paths);
   }
   for (FCurve &fcurve : adt->drivers) {
+    if (fcurve.rna_path == nullptr) {
+      continue;
+    }
     std::optional<std::string> fixed_path = rna_path_rename_fix(
         id, prefix, old_infix, new_infix, fcurve.rna_path, verify_paths);
     if (!fixed_path.has_value()) {

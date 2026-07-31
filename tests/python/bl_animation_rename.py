@@ -159,6 +159,62 @@ class PoseBoneRenameTest(unittest.TestCase):
             self.assertEqual(fcurve.data_path, f'pose.bones[\"{_BONE_NAME_A}"].location')
 
 
+class ConstraintRenameDriverCowTest(unittest.TestCase):
+    """Constraint rename must refresh evaluated drivers that target the constraint.
+
+    Regression: ``BKE_animdata_fix_paths`` rewrote driver targets on other IDs but only
+    tagged the constraint owner. Copy-on-write kept the stale RNA path, so drivers stopped
+    resolving until something else refreshed the driven ID.
+    """
+
+    def setUp(self) -> None:
+        bpy.ops.wm.read_homefile(use_factory_startup=True)
+        bpy.ops.object.empty_add()
+        self.target_obj = bpy.context.active_object
+        self.constraint = self.target_obj.constraints.new('COPY_LOCATION')
+        self.constraint.name = "MyCon"
+        self.constraint.influence = 0.25
+
+        bpy.ops.object.empty_add(location=(2.0, 0.0, 0.0))
+        self.driven_obj = bpy.context.active_object
+        fcu = self.driven_obj.driver_add("location", 0)
+        fcu.driver.type = 'AVERAGE'
+        var = fcu.driver.variables.new()
+        var.name = "var"
+        var.type = 'SINGLE_PROP'
+        tgt = var.targets[0]
+        tgt.id = self.target_obj
+        tgt.data_path = 'constraints["MyCon"].influence'
+        self.driver_target = tgt
+
+        bpy.context.view_layer.update()
+        self.assertAlmostEqual(self.driven_obj.location.x, 0.25, places=5)
+
+    def test_constraint_rename_keeps_evaluated_driver_working(self) -> None:
+        self.constraint.name = "MyConRenamed"
+        bpy.context.view_layer.update()
+
+        self.assertEqual(self.driver_target.data_path, 'constraints["MyConRenamed"].influence')
+
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        driven_eval = self.driven_obj.evaluated_get(depsgraph)
+        eval_path = driven_eval.animation_data.drivers[0].driver.variables[0].targets[0].data_path
+        self.assertEqual(
+            eval_path,
+            'constraints["MyConRenamed"].influence',
+            "Evaluated driver target must sync after constraint rename",
+        )
+
+        self.constraint.influence = 0.75
+        bpy.context.view_layer.update()
+        self.assertAlmostEqual(
+            self.driven_obj.location.x,
+            0.75,
+            places=5,
+            msg="Driver must keep resolving after constraint rename",
+        )
+
+
 if __name__ == "__main__":
     import sys
     sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
