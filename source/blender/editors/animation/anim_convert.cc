@@ -316,12 +316,35 @@ static void remove_rotation_fcurves(const ed::AnimTransformable &transformable,
   rotation_fcurves->clear();
 }
 
+/**
+ * #KeyframeIterator and the conversion loop only walk #FCurve::bezt keyframes. Sampled curves
+ * (#FCurve::fpt) would otherwise be treated as empty sources: the converter still deleted them and
+ * appended empty destination FCurves. Materialize samples to keyframes first so conversion
+ * preserves baked rotation animation.
+ */
+static void ensure_sampled_rotation_fcurves_are_keyframes(RNAFCurveMap &fcu_map)
+{
+  for (SortedFCurveBuffer &buffer : fcu_map.values()) {
+    for (FCurve *fcurve : buffer.fcurves()) {
+      if (!fcurve || !fcurve->fpt || fcurve->totvert < 1) {
+        continue;
+      }
+      /* #fcurve_samples_to_keyframes treats `end` as exclusive. */
+      const int start = int(floorf(fcurve->fpt[0].vec[0]));
+      const int end = int(floorf(fcurve->fpt[fcurve->totvert - 1].vec[0])) + 1;
+      fcurve_samples_to_keyframes(fcurve, start, end);
+    }
+  }
+}
+
 static bool convert_rotation_mode_channelbag(animrig::Channelbag &channelbag,
                                              RNAFCurveMap &fcu_map,
                                              const eRotationModes to_mode,
                                              const Span<std::pair<float, eRotationModes>> ranges,
                                              const ed::AnimTransformable &transformable)
 {
+  ensure_sampled_rotation_fcurves_are_keyframes(fcu_map);
+
   const int insertion_buffer_count = to_mode > ROT_MODE_QUAT ? 3 : 4;
   Array<FCurve *> insertion_buffer(insertion_buffer_count);
 
@@ -343,7 +366,7 @@ static bool convert_rotation_mode_channelbag(animrig::Channelbag &channelbag,
     insertion_buffer[i] = fcurve;
   }
 
-  bool modified_keys = false;
+  bool had_source_fcurves = false;
   for (const int i : ranges.index_range()) {
     const std::pair<float, eRotationModes> &rotation_mode_range = ranges[i];
     const eRotationModes from_mode = rotation_mode_range.second;
@@ -368,12 +391,20 @@ static bool convert_rotation_mode_channelbag(animrig::Channelbag &channelbag,
     convert_rotation_mode_range(
         evaluation_buffer, insertion_buffer, from_mode, to_mode, range, transformable, i > 0);
 
-    modified_keys = true;
+    had_source_fcurves = true;
   }
 
-  if (!modified_keys) {
-    /* There were no rotation FCurves to read from. In that case don't insert the
-     * `insertion_buffer` FCurves into the channelbag. */
+  bool inserted_any_keys = false;
+  for (const FCurve *fcurve : insertion_buffer) {
+    if (fcurve->totvert > 0) {
+      inserted_any_keys = true;
+      break;
+    }
+  }
+
+  if (!had_source_fcurves || !inserted_any_keys) {
+    /* There were no convertible rotation keys. Do not delete source FCurves or insert empty
+     * replacements — that silently destroyed sampled/baked rotation animation. */
     for (FCurve *fcurve : insertion_buffer) {
       BKE_fcurve_free(fcurve);
     }
