@@ -349,6 +349,46 @@ class ConvertRotationModeBones(ConvertRotationModeBase):
                 self.assertAlmostEqual(fcurve.keyframe_points[i].co[0], frame, 2)
 
 
+class ConvertRotationModeSampledFCurves(ConvertRotationModeBase):
+    """Sampled/baked rotation FCurves must not be silently deleted on mode convert."""
+
+    def setUp(self) -> None:
+        bpy.ops.wm.read_homefile(use_factory_startup=True)
+        bpy.ops.mesh.primitive_monkey_add()
+        self.obj = bpy.context.active_object
+        self.obj.rotation_mode = 'XYZ'
+        for frame, angles in ((1, (0.5, 0.25, 0.125)), (5, (1.0, 0.5, 0.25)), (10, (0.0, 1.0, 0.5))):
+            self.obj.rotation_euler = angles
+            self.obj.keyframe_insert("rotation_euler", frame=frame)
+        self.action = self.obj.animation_data.action
+        self.action_slot = self.obj.animation_data.action_slot
+        for fcurve in _fcurves_with_rna_path(self.action, self.action_slot, "rotation_euler"):
+            fcurve.convert_to_samples(1, 11)
+            self.assertEqual(len(fcurve.sampled_points), 10)
+            self.assertEqual(len(fcurve.keyframe_points), 0)
+
+    def test_convert_preserves_sampled_rotation(self):
+        matrices_before = []
+        for frame in range(1, 11):
+            bpy.context.scene.frame_set(frame)
+            matrices_before.append(self.obj.matrix_world.to_3x3().copy())
+
+        self.obj.convert_rotation_mode('QUATERNION')
+        self.assertEqual(self.obj.rotation_mode, 'QUATERNION')
+
+        quat_fcurves = list(
+            _fcurves_with_rna_path(self.action, self.action_slot, "rotation_quaternion"))
+        self.assertEqual(len(quat_fcurves), 4)
+        for fcurve in quat_fcurves:
+            self.assertGreater(len(fcurve.keyframe_points), 0,
+                               "Sampled rotation was dropped instead of converted")
+
+        for frame, matrix_before in enumerate(matrices_before, start=1):
+            bpy.context.scene.frame_set(frame)
+            self._assert_almost_equal_rotation_matrix(
+                matrix_before, self.obj.matrix_world.to_3x3())
+
+
 def main():
     global args
     import argparse
