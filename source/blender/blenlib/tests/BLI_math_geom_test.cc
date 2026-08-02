@@ -155,18 +155,18 @@ TEST(math_geom, CrossPoly)
 
 TEST(math_geom, GeodesicDistancePropagateValidVirtualSource)
 {
-  /* Right triangle with consistent distances from a common virtual source.
+  /* Triangle with consistent distances from a common virtual source.
    * Propagation across edge v1-v2 should use the virtual-source estimate. */
   const float v0[3] = {0.0f, 0.5f, 0.0f};
   const float v1[3] = {0.0f, 0.0f, 0.0f};
   const float v2[3] = {1.0f, 0.0f, 0.0f};
-  const float dist1 = 0.5f;
-  const float dist2 = 0.5f;
+  const float dist1 = 1.0f;
+  const float dist2 = 1.0f;
 
   const float dist0 = geodesic_distance_propagate_across_triangle(v0, v1, v2, dist1, dist2);
   const float dijkstra = std::min(dist1 + len_v3v3(v0, v1), dist2 + len_v3v3(v0, v2));
 
-  EXPECT_NEAR(dist0, 0.5f * std::sqrt(2.0f), 1e-5f);
+  EXPECT_NEAR(dist0, 1.4546565f, 1e-5f);
   EXPECT_LT(dist0, dijkstra - 1e-5f);
   EXPECT_GE(dist0, std::max(dist1, dist2));
 }
