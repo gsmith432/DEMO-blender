@@ -349,6 +349,32 @@ class ConvertRotationModeBones(ConvertRotationModeBase):
                 self.assertAlmostEqual(fcurve.keyframe_points[i].co[0], frame, 2)
 
 
+class ConvertRotationModeSharedActionSlot(ConvertRotationModeBase):
+    """Same Action+slot used as active action and NLA strip must convert only once."""
+
+    def setUp(self) -> None:
+        bpy.ops.wm.read_homefile(use_factory_startup=True)
+        bpy.ops.mesh.primitive_monkey_add()
+        self.obj = bpy.context.active_object
+        self.obj.rotation_mode = 'XYZ'
+        for frame, angles in ((1, (0.5, 0.25, 0.125)), (10, (1.0, 0.5, 0.25))):
+            self.obj.rotation_euler = angles
+            self.obj.keyframe_insert("rotation_euler", frame=frame)
+        self.action = self.obj.animation_data.action
+        self.action_slot = self.obj.animation_data.action_slot
+        track = self.obj.animation_data.nla_tracks.new()
+        strip = track.strips.new("dup", 1, self.action)
+        strip.action_slot = self.action_slot
+
+    def test_convert_does_not_duplicate_destination_fcurves(self):
+        self.obj.convert_rotation_mode('QUATERNION')
+        quat_fcurves = list(
+            _fcurves_with_rna_path(self.action, self.action_slot, "rotation_quaternion"))
+        self.assertEqual(len(quat_fcurves), 4)
+        for fcurve in quat_fcurves:
+            self.assertEqual(len(fcurve.keyframe_points), 2)
+
+
 def main():
     global args
     import argparse
