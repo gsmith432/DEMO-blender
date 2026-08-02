@@ -861,6 +861,11 @@ if(TEST_SRC_DIR_EXISTS)
   )
 
   add_blender_test(
+    bl_geo_grease_pencil_node_compat
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_geo_grease_pencil_node_compat.py
+  )
+
+  add_blender_test(
     bl_node_group_interface
     --python ${CMAKE_CURRENT_LIST_DIR}/bl_node_group_interface.py
     --

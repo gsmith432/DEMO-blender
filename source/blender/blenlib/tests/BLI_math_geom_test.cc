@@ -2,6 +2,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include <algorithm>
+#include <cmath>
+
 #include "testing/testing.h"
 
 #include "BLI_math_geom_c.hh"
@@ -148,6 +151,54 @@ TEST(math_geom, CrossPoly)
 
   EXPECT_EQ(cross_poly_v3_as_float3(tri_ccw_3d)[2], 2);
   EXPECT_EQ(cross_poly_v2(tri_ccw_2d, 3), 2);
+}
+
+TEST(math_geom, GeodesicDistancePropagateValidVirtualSource)
+{
+  /* Right triangle with consistent distances from a common virtual source.
+   * Propagation across edge v1-v2 should use the virtual-source estimate. */
+  const float v0[3] = {0.0f, 0.5f, 0.0f};
+  const float v1[3] = {0.0f, 0.0f, 0.0f};
+  const float v2[3] = {1.0f, 0.0f, 0.0f};
+  const float dist1 = 0.5f;
+  const float dist2 = 0.5f;
+
+  const float dist0 = geodesic_distance_propagate_across_triangle(v0, v1, v2, dist1, dist2);
+  const float dijkstra = std::min(dist1 + len_v3v3(v0, v1), dist2 + len_v3v3(v0, v2));
+
+  EXPECT_NEAR(dist0, 0.5f * std::sqrt(2.0f), 1e-5f);
+  EXPECT_LT(dist0, dijkstra - 1e-5f);
+  EXPECT_GE(dist0, std::max(dist1, dist2));
+}
+
+TEST(math_geom, GeodesicDistancePropagateRejectsBogusVirtualSource)
+{
+  /* Distances at v1/v2 that do not share a common source can produce a virtual
+   * source whose estimated distance at v0 is shorter than both inputs. That
+   * estimate must be rejected (fall back to Dijkstra), otherwise proportional
+   * connected edit / sculpt geodesic distances under-estimate and affect
+   * vertices beyond the intended radius (#161705). */
+  const float v0[3] = {0.25f, 0.25f, 0.0f};
+  const float v1[3] = {0.0f, 0.0f, 0.0f};
+  const float v2[3] = {1.0f, 0.0f, 0.0f};
+  const float dist1 = 0.5f;
+  const float dist2 = 0.5f;
+
+  const float dist0 = geodesic_distance_propagate_across_triangle(v0, v1, v2, dist1, dist2);
+  const float dijkstra = std::min(dist1 + len_v3v3(v0, v1), dist2 + len_v3v3(v0, v2));
+
+  EXPECT_NEAR(dist0, dijkstra, 1e-5f);
+  EXPECT_GT(dist0, std::max(dist1, dist2));
+}
+
+TEST(math_geom, GeodesicDistancePropagateDijkstraWhenDistanceZero)
+{
+  const float v0[3] = {1.0f, 1.0f, 0.0f};
+  const float v1[3] = {0.0f, 0.0f, 0.0f};
+  const float v2[3] = {2.0f, 0.0f, 0.0f};
+
+  const float dist0 = geodesic_distance_propagate_across_triangle(v0, v1, v2, 0.0f, 1.0f);
+  EXPECT_NEAR(dist0, len_v3v3(v0, v1), 1e-6f);
 }
 
 }  // namespace blender
