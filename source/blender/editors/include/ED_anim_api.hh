@@ -1340,7 +1340,10 @@ class SortedFCurveBuffer {
 };
 
 /* FCurves grouped by their RNA path. */
-using RNAFCurveMap = Map<StringRefNull, SortedFCurveBuffer>;
+/* Own the RNA path strings: conversion frees source FCurves (and their `rna_path` allocations)
+ * while this map is still queried for other rotation modes. Non-owning #StringRefNull keys would
+ * dangle after #Channelbag::fcurve_remove. */
+using RNAFCurveMap = Map<std::string, SortedFCurveBuffer>;
 /* For each Channelbag FCurves grouped by their RNA path. */
 using ChannelbagFCurveMap = Map<animrig::Channelbag *, RNAFCurveMap>;
 

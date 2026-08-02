@@ -449,7 +449,7 @@ ChannelbagFCurveMap build_rotation_fcurve_map(animrig::Action &action,
       if (!animrig::is_rotation_path(rna_path) && !is_rotation_mode_path(rna_path)) {
         continue;
       }
-      SortedFCurveBuffer &fcurve_buffer = curves.lookup_or_add(rna_path, {});
+      SortedFCurveBuffer &fcurve_buffer = curves.lookup_or_add(std::string(rna_path), {});
       fcurve_buffer.insert_fcurve(*fcurve);
     }
   }
@@ -500,10 +500,14 @@ void convert_to_rotation_mode(bContext &C,
         if (!BKE_id_is_editable(bmain, &action.id)) {
           return true;
         }
-        if (!data_map.contains({&action, slot_handle})) {
-          ChannelbagFCurveMap fcurve_map = build_rotation_fcurve_map(action, slot_handle);
-          data_map.add({&action, slot_handle}, fcurve_map);
+        /* The same Action+slot can appear as the assigned action, an NLA strip, and/or an Action
+         * constraint. Convert only once — a second pass would consult a map whose source FCurves
+         * were already freed and could append duplicate destination curves. */
+        if (data_map.contains({&action, slot_handle})) {
+          return true;
         }
+        ChannelbagFCurveMap fcurve_map = build_rotation_fcurve_map(action, slot_handle);
+        data_map.add_new({&action, slot_handle}, std::move(fcurve_map));
         ChannelbagFCurveMap &channelbag_fcurve_map = data_map.lookup({&action, slot_handle});
         if (bake) {
           bake_rotation_fcurves(channelbag_fcurve_map, transformable);

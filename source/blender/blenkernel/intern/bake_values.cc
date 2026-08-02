@@ -247,7 +247,10 @@ class RuntimeToBakeValue {
   {
     const CPPType &list_cpp_type = list.cpp_type();
     if (list_cpp_type.is<SocketValueVariant>()) {
-      bool found_invalid = true;
+      /* Start false: any failed element marks the list non-bakeable. Initializing to true made
+       * every SocketValueVariant list (e.g. Closure to List with mixed singles/fields) silently
+       * drop from Bake / Simulation Zone data. */
+      bool found_invalid = false;
       list.typed<SocketValueVariant>().foreach_for_write([&](SocketValueVariant &value_variant) {
         if (!this->runtime_to_bake__SocketValueVariant(value_variant)) {
           found_invalid = true;

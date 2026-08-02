@@ -158,6 +158,38 @@ class PoseBoneRenameTest(unittest.TestCase):
         for fcurve in dupli_action.layers[0].strips[0].channelbags[0].fcurves:
             self.assertEqual(fcurve.data_path, f'pose.bones[\"{_BONE_NAME_A}"].location')
 
+    def test_rename_constraint_sharing_bone_name(self) -> None:
+        """Constraint rename must update paths even when a parent bone uses the same name.
+
+        ``rna_path_rename_fix`` used to ``find`` the infix anywhere in the path, so
+        ``pose.bones["Copy"].constraints["Copy"]`` matched the bone segment and left the
+        constraint FCurve pointing at the old name.
+        """
+        shared_name = "Copy"
+        bpy.ops.object.mode_set(mode='EDIT')
+        edit_bone = self.armature_obj.data.edit_bones.new(shared_name)
+        edit_bone.head = (0, 0, 1)
+        edit_bone.tail = (0, 0, 2)
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        pbone = self.armature_obj.pose.bones[shared_name]
+        con = pbone.constraints.new('COPY_LOCATION')
+        con.name = shared_name
+        con.influence = 0.25
+        con.keyframe_insert("influence", frame=1)
+
+        action = self.armature_obj.animation_data.action
+        fcurves = action.layers[0].strips[0].channelbags[0].fcurves
+        self.assertEqual(
+            fcurves[0].data_path,
+            f'pose.bones["{shared_name}"].constraints["{shared_name}"].influence')
+
+        new_constraint_name = "CopyRenamed"
+        con.name = new_constraint_name
+        self.assertEqual(
+            fcurves[0].data_path,
+            f'pose.bones["{shared_name}"].constraints["{new_constraint_name}"].influence')
+
 
 if __name__ == "__main__":
     import sys

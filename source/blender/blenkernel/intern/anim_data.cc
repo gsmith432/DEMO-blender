@@ -717,14 +717,14 @@ static std::optional<std::string> rna_path_rename_fix(ID &owner_id,
     return std::nullopt;
   }
 
-  const int64_t old_infix_offset = old_path.find(old_infix);
-  if (old_infix_offset == StringRefBase::not_found) {
-    return std::nullopt;
-  }
-
-  /* Only modify paths if the prefix and old_name feature in the path,
-   * and prefix occurs immediately before old_name. */
-  if (prefix_offset + prefix.size() != old_infix_offset) {
+  /* Require `old_infix` immediately after `prefix`. Searching the whole path for `old_infix` is
+   * wrong when an earlier path segment uses the same name, e.g.
+   * `pose.bones["Copy"].constraints["Copy"]` — `find(["Copy"])` hits the bone, so renaming the
+   * constraint would silently leave FCurves/drivers pointing at the old name. */
+  const int64_t old_infix_offset = prefix_offset + prefix.size();
+  if (old_infix_offset + old_infix.size() > old_path.size() ||
+      old_path.substr(old_infix_offset, old_infix.size()) != old_infix)
+  {
     return std::nullopt;
   }
 
