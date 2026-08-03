@@ -21,6 +21,8 @@
 
 #include "sculpt_dyntopo.hh"
 
+#include "paint_image_proj.hh"
+
 #include "testing/testing.h"
 
 namespace blender::bke::tests {
@@ -125,3 +127,32 @@ TEST_F(BMeshPaintBVHTest, from_bmesh)
       << "Paint BVH should have some non-zero amount of nodes";
 }
 }  // namespace blender::bke::tests
+
+namespace blender::ed::sculpt_paint::tests {
+
+TEST(PaintImageProj, BleedUVTriAreaNormalUVs)
+{
+  const float uv0[2] = {0.0f, 0.0f};
+  const float uv1[2] = {1.0f, 0.0f};
+  const float uv2[2] = {0.0f, 1.0f};
+  const float area = project_paint_bleed_uv_tri_area(false, uv0, uv1, uv2);
+  EXPECT_GT(area, 0.0f);
+  EXPECT_NEAR(area, 0.5f, 1e-6f);
+}
+
+TEST(PaintImageProj, BleedUVTriAreaSingleValueUVIsDegenerate)
+{
+  const float uv[2] = {0.25f, 0.75f};
+  EXPECT_EQ(project_paint_bleed_uv_tri_area(true, uv, uv, uv), 0.0f);
+  EXPECT_EQ(project_paint_bleed_uv_tri_area(true, nullptr, nullptr, nullptr), 0.0f);
+}
+
+TEST(PaintImageProj, BleedUVTriAreaZeroAreaTriangleIsDegenerate)
+{
+  const float uv0[2] = {0.0f, 0.0f};
+  const float uv1[2] = {1.0f, 0.0f};
+  const float uv2[2] = {0.5f, 0.0f}; /* Colinear in UV space. */
+  EXPECT_EQ(project_paint_bleed_uv_tri_area(false, uv0, uv1, uv2), 0.0f);
+}
+
+}  // namespace blender::ed::sculpt_paint::tests

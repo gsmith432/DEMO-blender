@@ -99,6 +99,8 @@
 #include "ED_view3d.hh"
 #include "ED_view3d_offscreen.hh"
 
+#include "paint_image_proj.hh"
+
 #include "GPU_capabilities.hh"
 #include "GPU_init_exit.hh"
 
@@ -4130,7 +4132,10 @@ static void project_paint_bleed_add_face_user(const ProjPaintState *ps,
      * triangles, but that would allow other triangles to still find adjacent seams on degenerate
      * triangles, potentially causing incorrect results.
      * Single-value UV maps collapse to a point in UV space, so treat them as degenerate. */
-    const float area_tri = ps->poly_to_loop_uv_single ? 0.0f : area_tri_v2(UNPACK3(tri_uv));
+    const float area_tri =
+        ps->poly_to_loop_uv_single ?
+            ed::sculpt_paint::project_paint_bleed_uv_tri_area(true, nullptr, nullptr, nullptr) :
+            ed::sculpt_paint::project_paint_bleed_uv_tri_area(false, UNPACK3(tri_uv));
     if (area_tri > 0.0f) {
       const int vert_tri[3] = {PS_CORNER_TRI_AS_VERT_INDEX_3(ps, corner_tri)};
       void *tri_index_p = POINTER_FROM_INT(tri_index);

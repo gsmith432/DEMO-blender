@@ -4,7 +4,9 @@
 
 #include "testing/testing.h"
 
+#include "BLI_math_base_c.hh"
 #include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
 
 namespace blender {
@@ -148,6 +150,44 @@ TEST(math_geom, CrossPoly)
 
   EXPECT_EQ(cross_poly_v3_as_float3(tri_ccw_3d)[2], 2);
   EXPECT_EQ(cross_poly_v2(tri_ccw_2d, 3), 2);
+}
+
+TEST(math_geom, GeodesicPropagateAcrossTriangleValid)
+{
+  /* Equilateral triangle with equal distances at the base: virtual source is valid. */
+  const float v1[3] = {0.0f, 0.0f, 0.0f};
+  const float v2[3] = {1.0f, 0.0f, 0.0f};
+  const float v0[3] = {0.5f, 0.86602540378f, 0.0f};
+
+  const float dist = geodesic_distance_propagate_across_triangle(v0, v1, v2, 1.0f, 1.0f);
+  EXPECT_NEAR(dist, 1.73205080757f, 1e-5f);
+}
+
+TEST(math_geom, GeodesicPropagateAcrossTriangleZeroDistFallsBackToDijkstra)
+{
+  const float v1[3] = {0.0f, 0.0f, 0.0f};
+  const float v2[3] = {1.0f, 0.0f, 0.0f};
+  const float v0[3] = {0.5f, 0.86602540378f, 0.0f};
+
+  const float dist = geodesic_distance_propagate_across_triangle(v0, v1, v2, 0.0f, 1.0f);
+  const float dijkstra = len_v3v3(v0, v1);
+  EXPECT_NEAR(dist, dijkstra, 1e-6f);
+}
+
+TEST(math_geom, GeodesicPropagateAcrossTriangleRejectsShortVirtualSource)
+{
+  /* Flat triangle where a virtual source can be constructed but yields a distance shorter
+   * than max(dist1, dist2). That estimate is bogus (#161705); fall back to Dijkstra. */
+  const float v1[3] = {0.0f, 0.0f, 0.0f};
+  const float v2[3] = {1.0f, 0.0f, 0.0f};
+  const float v0[3] = {0.5f, 0.05f, 0.0f};
+  const float dist1 = 2.5f;
+  const float dist2 = 2.0f;
+
+  const float dist = geodesic_distance_propagate_across_triangle(v0, v1, v2, dist1, dist2);
+  const float dijkstra = min_ff(dist1 + len_v3v3(v0, v1), dist2 + len_v3v3(v0, v2));
+  EXPECT_NEAR(dist, dijkstra, 1e-5f);
+  EXPECT_GE(dist, max_ff(dist1, dist2));
 }
 
 }  // namespace blender
