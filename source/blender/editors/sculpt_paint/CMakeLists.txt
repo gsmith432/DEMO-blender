@@ -128,6 +128,7 @@ set(SRC
 
   mesh/mesh_brush_common.hh
   mesh/paint_hide.hh
+  mesh/paint_image_proj.hh
   mesh/paint_mask.hh
   mesh/sculpt_automask.hh
   mesh/sculpt_boundary.hh

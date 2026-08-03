@@ -600,6 +600,11 @@ add_blender_test(
   --testdir "${TEST_SRC_DIR}"
 )
 
+add_blender_test(
+  geo_grease_pencil_node_compat
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_geo_grease_pencil_node_compat.py
+)
+
 # ------------------------------------------------------------------------------
 # MODIFIERS TESTS
 # ------------------------------------------------------------------------------
