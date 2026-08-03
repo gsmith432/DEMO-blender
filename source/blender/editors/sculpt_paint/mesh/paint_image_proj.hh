@@ -24,9 +24,9 @@ namespace blender::ed::sculpt_paint {
  * face degenerate whenever seam bleed was enabled, silently disabling bleed.
  */
 inline float project_paint_bleed_uv_tri_area(const bool has_single_value_uv,
-                                            const float uv0[2],
-                                            const float uv1[2],
-                                            const float uv2[2])
+                                             const float uv0[2],
+                                             const float uv1[2],
+                                             const float uv2[2])
 {
   if (has_single_value_uv) {
     return 0.0f;
