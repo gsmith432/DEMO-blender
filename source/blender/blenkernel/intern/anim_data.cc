@@ -1117,8 +1117,12 @@ bool BKE_animdata_fix_paths_remove(ID *id, const char *prefix)
     any_removed |= animrig::legacy::action_fcurves_remove(*adt->action, adt->slot_handle, prefix);
   }
   if (adt->tmpact) {
+    /* Must operate on `tmpact` itself. Using `adt->action` was a copy-paste error from the
+     * slotted-Actions port: it either no-ops (wrong Action for `tmp_slot_handle`) or deletes
+     * FCurves from an unrelated slot on the tweaked Action, and never cleans the stashed Action
+     * used while NLA tweak-mode is active. */
     any_removed |= animrig::legacy::action_fcurves_remove(
-        *adt->action, adt->tmp_slot_handle, prefix);
+        *adt->tmpact, adt->tmp_slot_handle, prefix);
   }
 
   /* Drivers. */
