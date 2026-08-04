@@ -128,6 +128,7 @@ if(WITH_GTESTS)
   # Actual `blenloader` tests.
   set(TEST_SRC
     tests/blendfile_load_test.cc
+    tests/blend_validate_test.cc
   )
   set(TEST_LIB
     ${LIB}

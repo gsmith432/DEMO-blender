@@ -429,6 +429,11 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_rna_accessors.py
 )
 
+add_blender_test(
+  bl_rna_function_params
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_rna_function_params.py
+)
+
 # ------------------------------------------------------------------------------
 # BLEND IO & LINKING
 # ------------------------------------------------------------------------------
