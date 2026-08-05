@@ -216,6 +216,49 @@ class ObjectBakeTest(unittest.TestCase):
                 self.assertEqual(len(fcurve.keyframe_points), 10, f"Unexpected key count on {fcurve.data_path}")
 
 
+class FCurveBakeSampledTest(unittest.TestCase):
+    """FCurve.bake() must handle sample-only curves without crashing or leaving dual storage."""
+
+    def setUp(self) -> None:
+        bpy.ops.wm.read_homefile(use_factory_startup=True)
+        self.obj = bpy.data.objects.new("test_object", None)
+        bpy.context.scene.collection.objects.link(self.obj)
+        self.obj.animation_data_create()
+        action = bpy.data.actions.new("test_action")
+        self.obj.animation_data.action = action
+        self.obj.location.x = 0.0
+        self.obj.keyframe_insert("location", index=0, frame=1)
+        self.obj.location.x = 10.0
+        self.obj.keyframe_insert("location", index=0, frame=20)
+        channelbag = anim_utils.action_get_channelbag_for_slot(
+            action, self.obj.animation_data.action_slot)
+        self.fcu = next(fcu for fcu in channelbag.fcurves
+                        if fcu.data_path == "location" and fcu.array_index == 0)
+        self.fcu.convert_to_samples(1, 21)
+        self.assertEqual(len(self.fcu.keyframe_points), 0)
+        self.assertGreater(len(self.fcu.sampled_points), 0)
+
+    def _assert_bake_from_samples(self, remove: str) -> None:
+        value_at_5 = self.fcu.evaluate(5)
+        self.fcu.bake(1, 10, step=1.0, remove=remove)
+        self.assertGreater(len(self.fcu.keyframe_points), 0)
+        self.assertEqual(len(self.fcu.sampled_points), 0,
+                         "Baking must clear sample points when installing keyframes")
+        self.assertAlmostEqual(self.fcu.evaluate(5), value_at_5, places=4)
+
+    def test_bake_sampled_remove_none(self):
+        self._assert_bake_from_samples("NONE")
+
+    def test_bake_sampled_remove_in_range(self):
+        self._assert_bake_from_samples("IN_RANGE")
+
+    def test_bake_sampled_remove_out_range(self):
+        self._assert_bake_from_samples("OUT_RANGE")
+
+    def test_bake_sampled_remove_all(self):
+        self._assert_bake_from_samples("ALL")
+
+
 if __name__ == "__main__":
     import sys
     sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])

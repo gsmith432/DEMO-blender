@@ -519,6 +519,11 @@ static void remove_fcurve_key_range(FCurve *fcu,
                                     const int2 range,
                                     const BakeCurveRemove removal_mode)
 {
+  /* Sample-only curves have no BezTriples; key deletion is a no-op. */
+  if (fcu->bezt == nullptr) {
+    return;
+  }
+
   switch (removal_mode) {
 
     case BakeCurveRemove::ALL: {
@@ -579,6 +584,18 @@ void bake_fcurve(FCurve *fcu,
   float *samples = MEM_new_array_zeroed<float>(sample_count, "Channel Bake Samples");
   const float sample_rate = 1.0f / step;
   sample_fcurve_segment(fcu, range[0], sample_rate, samples, sample_count);
+
+  /* Baking always produces keyframes. If the F-Curve currently stores sample
+   * points (`fpt`), drop them first. Otherwise `totvert` still counts samples
+   * while `bezt` is null, and key-range removal / BezTriple merge read through
+   * a null pointer (crash). Leaving `fpt` around after installing keyframes
+   * would also leave the curve in an invalid dual-representation state. */
+  if (fcu->fpt != nullptr) {
+    MEM_SAFE_DELETE(fcu->fpt);
+    if (fcu->bezt == nullptr) {
+      fcu->totvert = 0;
+    }
+  }
 
   if (remove_existing != BakeCurveRemove::NONE) {
     remove_fcurve_key_range(fcu, range, remove_existing);
