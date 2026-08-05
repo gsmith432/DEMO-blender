@@ -420,6 +420,11 @@ add_blender_test(
 )
 
 add_blender_test(
+  id_delete_invariants
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_id_delete_invariants.py
+)
+
+add_blender_test(
   bl_rna_paths
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_rna_paths.py
 )
@@ -591,6 +596,11 @@ endif()
 add_blender_test(
   geometry_attributes
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_geometry_attributes.py
+)
+
+add_blender_test(
+  curve_to_mesh_attributes
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_curve_to_mesh_attributes.py
 )
 
 add_blender_test(
