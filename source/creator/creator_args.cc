@@ -2529,15 +2529,21 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
       BKE_reports_init(&reports, RPT_STORE);
 
       if (!RE_disable_save_output_allowed(true, *scene, &reports)) {
+        /* Background mode uses `G.is_break` for the process exit code. Also stop further
+         * argument processing so later steps do not treat a rejected render as success. */
+        G.is_break = true;
         BKE_reports_free(&reports);
         MEM_delete(frame_range_arr);
-        return 1;
+        return -1;
       }
 
       if (!RE_is_rendering_allowed(*bmain, scene, nullptr, nullptr, &reports)) {
+        /* Background mode uses `G.is_break` for the process exit code. Also stop further
+         * argument processing so later steps do not treat a rejected render as success. */
+        G.is_break = true;
         BKE_reports_free(&reports);
         MEM_delete(frame_range_arr);
-        return 1;
+        return -1;
       }
 
       re = RE_NewSceneRender(scene);
@@ -2582,13 +2588,19 @@ static int arg_handle_render_animation(int /*argc*/, const char ** /*argv*/, voi
     BKE_reports_init(&reports, RPT_STORE);
 
     if (!RE_disable_save_output_allowed(true, *scene, &reports)) {
+      /* Background mode uses `G.is_break` for the process exit code. Also stop further
+       * argument processing so later steps do not treat a rejected render as success. */
+      G.is_break = true;
       BKE_reports_free(&reports);
-      return 0;
+      return -1;
     }
 
     if (!RE_is_rendering_allowed(*bmain, scene, nullptr, nullptr, &reports)) {
+      /* Background mode uses `G.is_break` for the process exit code. Also stop further
+       * argument processing so later steps do not treat a rejected render as success. */
+      G.is_break = true;
       BKE_reports_free(&reports);
-      return 0;
+      return -1;
     }
 
     Render *re = RE_NewSceneRender(scene);
