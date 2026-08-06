@@ -5,7 +5,7 @@
 # ./blender.bin --background --python tests/python/bl_pyapi_mathutils.py -- --verbose
 import unittest
 from mathutils import Matrix, Vector, Quaternion, Euler, Color
-from mathutils import kdtree, geometry
+from mathutils import kdtree, geometry, bvhtree
 import math
 
 # keep globals immutable
@@ -1224,6 +1224,49 @@ class TesselatePolygon(unittest.TestCase):
         # degenerate geometry is handled properly.
         expect = [(0, 0, 0)]
         self.assertEqual(expect, geometry.tessellate_polygon([polyline]))
+
+
+class GeometryEmptySequence(unittest.TestCase):
+    """
+    Regression for empty-sequence parsing (!161723).
+
+    ``mathutils_array_parse_alloc_v`` previously left the caller's pointer
+    uninitialized for empty sequences; callers that always ``PyMem_Free`` the
+    buffer (e.g. ``geometry.normal``) crashed.
+    """
+
+    def test_normal_empty_raises(self):
+        with self.assertRaises(ValueError):
+            geometry.normal([])
+        with self.assertRaises(ValueError):
+            geometry.normal(())
+
+    def test_box_fit_2d_empty(self):
+        self.assertEqual(0.0, geometry.box_fit_2d([]))
+
+    def test_convex_hull_2d_empty(self):
+        self.assertEqual([], geometry.convex_hull_2d([]))
+
+
+class BVHTreeFromPolygons(unittest.TestCase):
+    """
+    Regression for BVHTree.FromPolygons out-of-range indices (!161723).
+
+    Bad indices used to be stored before validation, then tessellation ran on
+    rejected/unassigned indices (out-of-bounds read).
+    """
+
+    def test_out_of_range_index_raises(self):
+        coords = [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)]
+        with self.assertRaises(ValueError):
+            bvhtree.BVHTree.FromPolygons(coords, [[0, 1, 99]])
+
+    def test_valid_triangle(self):
+        coords = [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)]
+        tree = bvhtree.BVHTree.FromPolygons(coords, [[0, 1, 2]])
+        self.assertIsNotNone(tree)
+        hit = tree.ray_cast((0.1, 0.1, 1.0), (0.0, 0.0, -1.0))
+        self.assertIsNotNone(hit[0])
 
 
 if __name__ == '__main__':

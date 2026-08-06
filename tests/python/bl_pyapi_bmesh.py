@@ -61,6 +61,104 @@ class TestBMeshBasic(unittest.TestCase):
 
 
 # ------------------------------------------------------------------------------
+# API safety regressions (!161723)
+
+class TestBMeshSelectHistoryContains(unittest.TestCase):
+    """
+    ``BMEditSelSeq.__contains__`` must type-check before casting.
+
+    Non-BMElem values (e.g. ``None``) previously caused an invalid read past a
+    small Python object allocation.
+    """
+
+    def test_contains_non_elements(self):
+        bm = bmesh.new()
+        v = bm.verts.new((0.0, 0.0, 0.0))
+        bm.select_history.add(v)
+
+        self.assertTrue(v in bm.select_history)
+        self.assertFalse(None in bm.select_history)
+        self.assertFalse(True in bm.select_history)
+        self.assertFalse(1 in bm.select_history)
+
+        bm_other = bmesh.new()
+        v_other = bm_other.verts.new((1.0, 0.0, 0.0))
+        self.assertFalse(v_other in bm.select_history)
+
+        bm.free()
+        bm_other.free()
+
+
+class TestBMeshFaceSplitSourceMesh(unittest.TestCase):
+    """
+    ``bmesh.utils.face_split(..., source=edge)`` must reject edges from another
+    mesh so custom-data is not read with the destination layout.
+    """
+
+    def test_source_from_other_mesh_raises(self):
+        bm = bmesh.new()
+        verts = [bm.verts.new(co) for co in (
+            (0.0, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+            (1.0, 1.0, 0.0),
+            (0.0, 1.0, 0.0),
+        )]
+        face = bm.faces.new(verts)
+
+        bm_other = bmesh.new()
+        other_verts = [bm_other.verts.new(co) for co in (
+            (0.0, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+        )]
+        edge_other = bm_other.edges.new(other_verts)
+
+        with self.assertRaises(ValueError):
+            bmesh.utils.face_split(face, verts[0], verts[2], source=edge_other)
+
+        new_face, new_loop = bmesh.utils.face_split(
+            face, verts[0], verts[2], source=face.edges[0],
+        )
+        self.assertIsNotNone(new_face)
+        self.assertIsNotNone(new_loop)
+
+        bm.free()
+        bm_other.free()
+
+
+class TestBMDeformVertAssign(unittest.TestCase):
+    """
+    BMDeformVert assignment/deletion must validate before mutating weights.
+
+    Previously:
+    - non-numeric assignment created a group then failed, leaving weight 0
+    - deleting a missing key raised KeyError but still reported success
+    """
+
+    def test_reject_non_number_without_creating_group(self):
+        bm = bmesh.new()
+        bm.verts.new((0.0, 0.0, 0.0))
+        deform = bm.verts.layers.deform.verify()
+        bm.verts.ensure_lookup_table()
+        dv = bm.verts[0][deform]
+
+        with self.assertRaises(TypeError):
+            dv[0] = "not-a-number"
+        self.assertEqual(list(dv.keys()), [])
+        self.assertEqual(len(dv), 0)
+
+        with self.assertRaises(KeyError):
+            del dv[0]
+        self.assertEqual(list(dv.keys()), [])
+
+        dv[0] = 0.25
+        self.assertEqual(list(dv.keys()), [0])
+        del dv[0]
+        self.assertEqual(list(dv.keys()), [])
+
+        bm.free()
+
+
+# ------------------------------------------------------------------------------
 # UV Selection
 
 def bm_uv_select_check_or_empty(
