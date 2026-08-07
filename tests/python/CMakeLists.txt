@@ -349,6 +349,11 @@ add_blender_test(
 )
 
 add_blender_test(
+  script_pyapi_context_managers
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_context_managers.py
+)
+
+add_blender_test(
   imbuf_py_api
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_imbuf_py_api.py
 )
