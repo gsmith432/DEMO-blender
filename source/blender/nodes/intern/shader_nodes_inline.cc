@@ -302,12 +302,18 @@ class ShaderNodesInliner {
     Vector<SocketInContext> output_sockets;
     auto add_output_type = [&](const UString output_type) {
       for (const TreeInContext &tree : trees) {
-        const bke::bNodeTreeZones &zones = *tree->zones();
+        /* #find_trees_potentially_containing_shader_outputs_recursive only appends trees with
+         * valid zones, but still guard against null. Zone discovery returns null when the tree
+         * has an invalid zone setup (e.g. a Material Output inside a Closure zone). */
+        const bke::bNodeTreeZones *zones = tree->zones();
+        if (!zones) {
+          continue;
+        }
         for (const bNode *node : tree->nodes_by_type(output_type)) {
           if (!ELEM(get_engine_target(node), SHD_OUTPUT_ALL, params_.target_engine_)) {
             continue;
           }
-          const bke::bNodeTreeZone *zone = zones.get_zone_by_node(node->identifier);
+          const bke::bNodeTreeZone *zone = zones->get_zone_by_node(node->identifier);
           if (zone) {
             params_.r_error_messages.append({node, TIP_("Output node must not be in zone")});
             continue;
@@ -349,11 +355,16 @@ class ShaderNodesInliner {
                                                                   const bNodeTree &tree,
                                                                   Vector<TreeInContext> &r_trees)
   {
-    const bke::bNodeTreeZones *zones = src_tree_.zones();
-    if (!zones) {
+    if (tree.has_available_link_cycle()) {
       return;
     }
-    if (tree.has_available_link_cycle()) {
+    /* Must use this tree's zones, not #src_tree_. Nested groups have independent node
+     * identifiers; looking them up in the root tree's zone map can collide with unrelated root
+     * nodes (false skip) or miss a zone membership in the nested tree (wrongly accept outputs
+     * from groups inside Closure zones). Also, zone discovery returns null for invalid zone
+     * setups — skip those trees instead of later null-dereferencing in output collection. */
+    const bke::bNodeTreeZones *zones = tree.zones();
+    if (!zones) {
       return;
     }
     r_trees.append({context, &tree});
