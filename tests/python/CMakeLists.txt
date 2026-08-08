@@ -349,6 +349,11 @@ add_blender_test(
 )
 
 add_blender_test(
+  script_pyapi_memory_safety
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_memory_safety.py
+)
+
+add_blender_test(
   imbuf_py_api
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_imbuf_py_api.py
 )
